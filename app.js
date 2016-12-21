@@ -89,7 +89,68 @@ function Language(l)
 {
 	if(l == undefined) var l = "ko";
 	this.ln = l;
-	this.en = {};
+	this.jp = {
+		"PLD":"ナイト",
+		"GLD":"剣術士",
+		"WAR":"戦",
+		"MRD":"斧術士",
+		"DRK":"暗",
+		
+		"MNK":"モンク",
+		"PGL":"格闘士",
+		"DRG":"竜",
+		"LNC":"槍術士",
+		"NIN":"忍",
+		"ROG":"双剣士",
+		"BRD":"吟",
+		"ARC":"弓術士",
+		"MCH":"機",
+		"SMN":"召",
+		"THM":"呪術士",
+		"BLM":"黒",
+		
+		"WHM":"白",
+		"CNJ":"幻術士",
+		"SCH":"学",
+		"ACN":"巴術士",
+		"AST":"占",
+		"LMB":"リミット",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
+	this.en = {
+		"PLD":"PLD",
+		"GLD":"GLD",
+		"WAR":"WAR",
+		"MRD":"MRD",
+		"DRK":"DRK",
+		
+		"MNK":"MNK",
+		"PGL":"PGL",
+		"DRG":"DRG",
+		"LNC":"LNC",
+		"NIN":"NIN",
+		"ROG":"ROG",
+		"BRD":"BRD",
+		"ARC":"ARC",
+		"MCH":"MCH",
+		"SMN":"SMN",
+		"THM":"THM",
+		"BLM":"BLM",
+		
+		"WHM":"WHM",
+		"CNJ":"CNJ",
+		"SCH":"SCH",
+		"ACN":"ACN",
+		"AST":"AST",
+		"LMB":"LMB",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
 	this.ko = {
 		"PLD":"나이트",
 		"GLD":"검술사",
@@ -234,6 +295,7 @@ function Person(e, c)
 		}
 	}
 
+	// globalization
 	if(this.Class == "")
 	{
 		if(
@@ -282,7 +344,7 @@ function Person(e, c)
 	{
 		var regex = /(?:.*?)\((.*?)\)/im;
 		var matches = this.name.match(regex);
-		if(matches.length > 1)
+		if(regex.test(this.name)) // do not use Array.length 
 		{
 			this.petOwner = matches[1];
 		}
@@ -382,7 +444,8 @@ function Combatant(e, sortkey)
 	this.encounter = e.detail.Encounter;
 	this.persons = [];
 	this.duration = this.encounter.duration;
-	this.maxdamage = 0;
+	this.maxdamage = 0; // for old versions
+	this.maxValue = 0; // please use this value
 	this.zone = this.encounter.CurrentZoneName;
 	this.title = this.encounter.title;
 	this.noPetPersons = [];
@@ -401,7 +464,6 @@ function Combatant(e, sortkey)
 			this.noPetPersons.push(this.persons[p].name);
 	}
 
-	// PET AUTOMERGE
 	for(var i in this.persons)
 	{
 		var p = this.persons[i];
@@ -428,35 +490,55 @@ function Combatant(e, sortkey)
 			}
 		}
 	}
+	this.rerank(this.sortvector);
+}
 
-	for(var i in this.persons)
+Combatant.prototype.activeSort = function()
+{
+	var sortkey = this.sortKey;
+
+	if (this.summonerMerge)
 	{
-		if(parseInt(this.persons[i].mergedDamage) > this.maxdamage)
+		switch(sortkey)
 		{
-			this.maxdamage = parseInt(this.persons[i].mergedDamage);
+			case "damage" : sortkey = "mergedDamage"; break;
+			case "healed" : sortkey = "mergedHealed"; break;
+			case "hits" : sortkey = "mergedHits"; break;
+			case "misses" : sortkey = "mergedHits"; break;
+			case "swings" : sortkey = "mergedSwings"; break;
+			case "heals" : sortkey = "mergedHeals"; break;
+			case "crithits" : sortkey = "mergedCrithits"; break;
+			case "critheals" : sortkey = "mergedCritheals"; break;
+			case "Last10DPS" : sortkey = "mergedLast10DPS"; break;
+			case "Last30DPS" : sortkey = "mergedLast30DPS"; break;
+			case "Last60DPS" : sortkey = "mergedLast60DPS"; break;
+			case "damagetaken" : sortkey = "mergedDamagetaken"; break;
+			case "healstaken" : sortkey = "mergedHealstaken"; break;
 		}
 	}
-	
-	for(var i in this.persons)
-	{
-		var p = this.persons[i];
-		p.maxdamage = this.maxdamage;
-	}
-	this.rerank(this.sortvector);
+
+	if (sortkey == "maxhit") sortkey = "maxHit";
+	if (sortkey == "maxheal") sortkey = "maxHeal";
+
+	return sortkey;
 }
 
 Combatant.prototype.rerank = function(asc)
 {
+	// sort methods
 	if(asc == undefined || asc === null) var asc = true;
 
 	var personNew = [];
-	var tmpPerson = [];
+
 	for(var i in this.persons)
 	{
 		personNew.push({kval:this.persons[i][this.sortkey], val:this.persons[i]});
 	}
 	
-	personNew.sort(function(a, b){return b.kval - a.kval;});
+	if(asc)
+		personNew.sort(function(a, b){return b.kval - a.kval;});
+	else // descending
+		personNew.sort(function(a, b){return a.kval - b.kval;});
 
 	this.persons = [];
 	for(var i in personNew)
@@ -464,45 +546,22 @@ Combatant.prototype.rerank = function(asc)
 		this.persons.push(personNew[i].val);
 	}
 
+	// rework maxdamage to MaxValue
 	var i = 0;
-	this.maxdamage = 0;
+	this.maxValue = 0;
 	for(var p in this.persons)
 	{
+		if(parseInt(this.persons[p][this.activeSort()]) > this.maxValue)
+		{
+			this.maxValue = parseInt(this.persons[p][this.activeSort()]);
+		}
+
+		this.maxdamage = this.maxValue;
+		this.persons[p].maxdamage = this.maxValue;
+
 		if(this.persons[p].isPet && this.persons[p].petOwner != "" && this.persons[p].petType != "Chocobo" && this.summonerMerge) continue;
 		this.persons[p].rank = i++;
-		if(parseInt(this.persons[p][this.sortkey]) > this.maxdamage)
-		{
-			this.maxdamage = parseInt(this.persons[p][this.sortkey]);
-		}
 	}
-}
-
-Combatant.prototype.personQuicksort = function(arr, type)
-{
-	if(type === undefined || type === null) var type = true;
-
-	if(arr.length <= 1) return arr;
-	var lte = []; //less than
-	var gte = []; //greater than
-	var pivot = arr[parseInt(arr.length / 2)];
-	for (var i = arr.length - 1; i >= 0; i--) 
-	{
-		if (parseFloat(arr[i][this.sortkey]) < parseFloat(pivot[this.sortkey]))
-		{
-			if(type) 
-				gte.push(arr[i]);
-			else
-				lte.push(arr[i]);
-		} 
-		else if (parseFloat(arr[i][this.sortkey]) > parseFloat(pivot[this.sortkey]))
-		{
-			if(type) 
-				lte.push(arr[i]);
-			else
-				gte.push(arr[i]);
-		}
-	}
-	return Array.prototype.concat(this.personQuicksort(lte), pivot, this.personQuicksort(gte));
 }
 
 Combatant.prototype.sortkeyChange = function(e)
@@ -518,171 +577,6 @@ Combatant.prototype.getData = function(c)
 		if(this.persons[i].name == c)
 			return this.persons[i];
 	}
-}
-
-function ActXivLogLineRead(e)
-{
-	this.logtime = new Date();
-
-	// flag
-	this.data = e.split("|");
-	// 
-	this.flag = this.data[0];
-	this.time = this.data[1];
-	this.type = this.data[2];
-	this.person = this.getUNI(this.data[3]);
-	this.message = this.getUNI(this.data[4]);
-
-	this.originText = e;
-	this.chatlog = "";
-	this.blockTypes = ["202b", "222b", "222e", "2230", "222d"];
-	this.types = {
-		"0001":"unknown",
-		"0002":"unknown",
-		"0003":"이벤트",
-		"0004":"unknown",
-		"0005":"unknown",
-		"0006":"unknown",
-		"0007":"unknown",
-		"0008":"unknown",
-		"0009":"unknown",
-		"000a":"말하기",
-		"000b":"외치기",
-		"000c":"귓속말 (from)",
-		"000d":"귓속말 (to)",
-		"000e":"파티",
-		"000f":"unknown",
-		"0010":"1",
-		"0011":"2",
-		"0012":"3",
-		"0013":"4",
-		"0014":"5",
-		"0015":"6",
-		"0016":"7",
-		"0017":"8",
-		"0018":"자유부대",
-		"0019":"unknown",
-		"001a":"unknown",
-		"001b":"초보자",
-		"001c":"자신만의 감정 표현",
-		"001d":"감정 표현",
-		"001e":"떠들기",
-		"001f":"unknown",
-		"0020":"unknown",
-		"0021":"unknown",
-		"0022":"unknown",
-		"0023":"unknown",
-		"0024":"unknown",
-		"0025":"unknown",
-		"0026":"unknown",
-		"0027":"unknown",
-		"0028":"unknown",
-		"0029":"unknown",
-		"002a":"unknown",
-		"002b":"unknown",
-		"002c":"unknown",
-		"002d":"unknown",
-		"002e":"unknown",
-		"002f":"unknown",
-		"0030":"unknown",
-		"0031":"unknown",
-		"0032":"unknown",
-		"0033":"unknown",
-		"0034":"unknown",
-		"0035":"unknown",
-		"0036":"unknown",
-		"0037":"unknown",
-		"0038":"unknown",
-		"0039":"시스템",
-		"003a":"unknown",
-		"003b":"unknown",
-		"003c":"unknown",
-		"003d":"unknown",
-		"003e":"unknown",
-		"003f":"unknown",
-	};
-	
-	if(this.type.length == 4 && this.blockChat())
-	{
-		$("body").append("<div title=\""+this.join(this.data[4])+"\">["+this.getType()+"] "+this.person+" : "+this.message+"</div>");
-		$("body").scrollTop($("body").height());
-	}
-}
-
-ActXivLogLineRead.prototype.blockChat = function()
-{
-	for(var i in this.blockTypes)
-		if(this.blockTypes[i] == this.type) return false;
-	return true;
-}
-
-ActXivLogLineRead.prototype.getType = function()
-{
-	if(this.types[this.type] == undefined)
-		return this.type;
-	else
-		return this.types[this.type];
-}
-
-ActXivLogLineRead.prototype.convert = function(e)
-{
-	var bytes = [];
-	var unicode = [];
-
-	for(var i = 0; i < e.length; i++)
-	{
-		var char = e.charCodeAt(i);
-		bytes.push(char >>> 8);
-		bytes.push(char & 0xFF);
-	}
-	
-	for(i=0;i<bytes.length;i++)
-	{
-		var cv = (bytes[i]*256) + bytes[++i];
-		if(cv != 65533 && cv != 0)
-			unicode.push( cv );
-	}
-
-	return unicode;
-}
-
-ActXivLogLineRead.prototype.join = function(e)
-{
-	return this.convert(e).join(",");
-}
-
-ActXivLogLineRead.prototype.getUNI = function(e)
-{
-	//
-	var worked = this.join(e);
-
-	// nickname
-	worked = worked.replace(/2,39,[0-9]*?,1,1,1,1,[0-9]*?,(.*?)(?:,3,)(?:.*?)(?:,2,)39,[0-9]*?,1,1,1,1,3/mg,"$1,");
-
-	// Item Link
-	var matchitem = /2,19,6,(?:|89,)(?:|3,)[0-9]*?,[0-9]*?,[0-9]*?,[0-9]*?,[0-9]*?,[0-9]*?,([0-9]*?),1,3,2,19,6,123,26,3,57531,2,19,2,3,(.*?)(?:,2,)39,7,1,1,1,1,3,2,19,2,3/im;
-	try
-	{
-		var matches = worked.match(matchitem);
-		console.log(matches);
-		worked = worked.replace(matches[0], this.join("<span data-id=\"\" class=\"itemlv"+matches[1]+"\">")+","+matches[2]+","+this.join("</span>"));
-	}
-	catch(ex)
-	{ }
-
-	// newbiechat
-	worked = worked.replace(/2,18,2,(.*?),3,2,39,.*?,1,.*?,1,1,.*?,(.*?)(?:,3,)(?:.*?)(?:,2,)39,7,1,1,1,1,3/mg,"$2,");
-
-	// Map Link
-	worked = worked.replace(/2,39,(?:18|17|16|15),4,(?:.*?)(?:2,19,2,3,)(.*?)(?:,2,39,7,1,1,1,1,3)/mg, "$1,");
-
-	var result = "";
-	var worked_split = worked.split(",");
-
-	for(var i in worked_split)
-		result += String.fromCharCode(parseInt(worked_split[i]));
-
-	return result;
 }
 
 function isSrcEnable()
@@ -738,18 +632,23 @@ function zoomResize(size)
 
 $(document).ready(function()
 {
-	document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate);
+	// Before
+	try { document.addEventListener('beforeLogLineRead', beforeLogLineRead); } catch (ex) { }
 
-	try
-	{
-		document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate);
-		document.addEventListener('onLogLineRead', onLogLineRead);
-		document.addEventListener('beforeLogLineRead', beforeLogLineRead);
-		document.addEventListener('onScreenShotTaked', onScreenShotTaked);
-		document.addEventListener('onEncounterEndExecuted', onEncounterEndExecuted);
-		document.addEventListener('onZoomSizeChanged', onZoomSizeChanged);
-	}
-	catch(ex) { }
+	// On
+	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayUpdate is not defined."); }
+	try { document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate); } catch (ex) { }
+	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
+	try { document.addEventListener('onScreenShotTaked', onScreenShotTaked); } catch (ex) { }
+	try { document.addEventListener('onEncounterEndExecuted', onEncounterEndExecuted); } catch (ex) { }
+	try { document.addEventListener('onZoomSizeChanged', onZoomSizeChanged); } catch (ex) { }
+	try { document.addEventListener('onBinaryFileOpen', onBinaryFileOpen); } catch (ex) { }
+
+	// File IO (miniparse Extension)
+	try { document.addEventListener('openFileDialog', openFileDialog); } catch (ex) { }
+	try { document.addEventListener('getFileList', getFileList); } catch (ex) { }
+	try { document.addEventListener('getDirectoryList', getDirectoryList); } catch (ex) { }
+	try { document.addEventListener('afterLoadFile', afterLoadFile); } catch (ex) { }
 });
 
 var lastCombat = null;
