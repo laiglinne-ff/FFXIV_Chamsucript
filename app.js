@@ -630,7 +630,29 @@ function zoomResize(size)
 	}
 }
 
-$(document).ready(function()
+if (document.addEventListener) 
+{
+	// Mozilla, Opera, Webkit 
+	document.addEventListener("DOMContentLoaded", function () 
+	{
+		document.removeEventListener("DOMContentLoaded", arguments.callee, false);
+		domReady();
+	}, false);
+}
+else if (document.attachEvent) 
+{
+	// Internet Explorer
+	document.attachEvent("onreadystatechange", function () 
+	{
+		if (document.readyState === "complete") 
+		{
+			document.detachEvent("onreadystatechange", arguments.callee);
+			domReady();
+		}
+	});
+}
+
+function domReady() 
 {
 	// Before
 	try { document.addEventListener('beforeLogLineRead', beforeLogLineRead); } catch (ex) { }
@@ -649,7 +671,7 @@ $(document).ready(function()
 	try { document.addEventListener('getFileList', getFileList); } catch (ex) { }
 	try { document.addEventListener('getDirectoryList', getDirectoryList); } catch (ex) { }
 	try { document.addEventListener('afterLoadFile', afterLoadFile); } catch (ex) { }
-});
+}
 
 var lastCombat = null;
 var sortKey = "encdps";
