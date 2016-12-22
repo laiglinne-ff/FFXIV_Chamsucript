@@ -16,12 +16,7 @@ function connectWebSocket(uri)
 		}
 		else 
 		{
-			if(evt.data.type == "onOverlayDataUpdate")
-				onOverlayDataUpdate(evt.data);
-			else if(evt.data.type == "onLogLineRead")
-				onLogLineRead(evt.data);
-			else if(evt.data.type == "beforeLogLineRead")
-				beforeLogLineRead(evt.data);
+			onMessage(evt.data);
 		}
 	};
 
@@ -791,6 +786,10 @@ function onMessage(e)
 {
 	if (e.data.type === 'onOverlayDataUpdate') 
 		onOverlayDataUpdate(e.data);
+	else if (e.data.type === 'onLogLineRead') 
+		onLogLineRead(e.data);
+	else if (e.data.type === 'beforeLogLineRead') 
+		beforeLogLineRead(e.data);
 }
 
 var lastCombat = null;
