@@ -605,6 +605,10 @@ Combatant.prototype.sortkeyChangeDesc = function(e)
 function activeSort(sortKey, summonerMerge)
 {
 	var sortkey = sortKey;
+
+	if (sortkey == "encdps") sortkey = "damage";
+	else if (sortkey == "enchps") sortkey = "healed";
+	
 	if (summonerMerge)
 	{
 		switch(sortkey)
