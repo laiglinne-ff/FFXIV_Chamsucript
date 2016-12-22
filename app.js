@@ -1,6 +1,8 @@
 /* -- This Library License Under GNU GPL v2 
 	@Author Laighlinne_ff
 */
+
+// actwebsoket 에서 사용합니다.
 function connectWebSocket(uri)
 {
 	websocket = new WebSocket(uri);
@@ -42,6 +44,8 @@ Number.prototype.nanFix = function()
 	return (isNaN(this)?0:this);
 }
 
+// string : StringObject.format(ObjectArray a)
+// 사용예 : "{abc}{def}".format({abc:"wow", ghi:" awesome!"}); => return "wow awesome!";
 String.prototype.format = function(a)
 {
 	var reg = /(\{([^}]+)\})/im;
@@ -85,6 +89,7 @@ String.prototype.replaceArray = function(a)
 	return r;
 }
 
+// language 객체 입니다.
 function Language(l)
 {
 	if(l == undefined) var l = "ko";
@@ -184,6 +189,8 @@ function Language(l)
 	};
 }
 
+// 해당하는 언어의 값을 가져옵니다.
+// string : LanguageObject.get(string v)
 Language.prototype.get = function(v)
 {
 	try
@@ -196,6 +203,8 @@ Language.prototype.get = function(v)
 	}
 }
 
+// 일반적으로는 호출하지 않습니다.
+// new Person(Combatant e, string c)
 function Person(e, c)
 {
 	this.isPet = false;
@@ -203,8 +212,6 @@ function Person(e, c)
 	this.maxdamage = 0;
 	this.encounter = this.combatant.encounter;
 	var char = e.combatants[c];
-	this.langpack = new Language();
-
 	this.name = char.name;
 	this.duration = char.duration;
 	this.DURATION = parseInt(char.DURATION).nanFix();
@@ -381,9 +388,11 @@ function Person(e, c)
 		this.isPet = true;
 		this.Class = "Chocobo";
 	}
-	this.classname = this.langpack.get(this.Class.toUpperCase());
+	this.classname = this.combatant.langpack.get(this.Class.toUpperCase());
 }
 
+// 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
+// object : PersonObject.getColor(int r, int g, int b)
 Person.prototype.getColor = function(r, g, b)
 {
 	if(this.colors[this.Class] != undefined)
@@ -399,6 +408,8 @@ Person.prototype.getColor = function(r, g, b)
 	}
 }
 
+// 일반적으로는 강제로 호출하지 않습니다.
+// void : PersonObject.recalc()
 Person.prototype.recalc = function()
 {
 	this.dmgPct = parseFloat(this.mergedDamage / parseInt(this.encounter.damage) * 100).nanFix().toFixed(underDot);
@@ -413,6 +424,8 @@ Person.prototype.recalc = function()
 	this.OverHPct = parseFloat(this.invalidHeal / this.validHeal * 100).nanFix().toFixed(underDot);
 }
 
+// 일반적으로는 강제로 호출하지 않습니다.
+// void : PersonObject.merge(Person p)
 Person.prototype.merge = function(p)
 {
 	//sum target data
@@ -435,9 +448,13 @@ Person.prototype.merge = function(p)
 	this.recalc();
 };
 
-function Combatant(e, sortkey)
+// Combatant 객체 입니다. onOverlayDataUpdate 의 EventArgs 를 넣어주면 됩니다.
+// new Combatant(onOverlayDataUpdateEventArgs e, string sortkey = "encdps", string lang = "ko")
+function Combatant(e, sortkey, lang)
 {
 	if(sortkey === null || sortkey === undefined) var sortkey = "encdps";
+	if(lang === null || lang === undefined) var sortkey = "ko";
+
 	this.summonerMerge = true;
 	this.sortkey = sortkey;
 	this.combatants = e.detail.Combatant;
@@ -451,6 +468,7 @@ function Combatant(e, sortkey)
 	this.noPetPersons = [];
 	this.sortvector = true;
 	this.data = e;
+	this.langpack = new Language(lang);
 
 	this.combatKey = this.encounter.title.concat(this.encounter.damage).concat(this.encounter.healed);
 	for(var p in e.detail.Combatant)
@@ -493,7 +511,19 @@ function Combatant(e, sortkey)
 	this.rerank(this.sortvector);
 }
 
-Combatant.prototype.activeSort = function()
+// combatant 객체가 사용할 Language 객체를 재선언합니다.
+// void : Combatant.changeLang(string lang)
+// onLanguageChange 이벤트를 발생시킵니다. 변경시 해야 할 작업을 정해주면 됩니다.
+Combatant.prototype.changeLang = function(lang)
+{
+	this.langpack = new Language(lang);
+	document.dispatchEvent(new CustomEvent('onLanguageChange', {detail:{language:lang, combatant:this}}));
+}
+
+// 소환수 합산 상태와 비합산 상태의 가져올 값을 변환해 줍니다.
+// 일반적으로는 호출하지 않습니다.
+// string : CombatantObject.activeSort()
+Combatant.prototype.activeSort = function() 
 {
 	var sortkey = this.sortKey;
 
@@ -516,13 +546,15 @@ Combatant.prototype.activeSort = function()
 			case "healstaken" : sortkey = "mergedHealstaken"; break;
 		}
 	}
-
-	if (sortkey == "maxhit") sortkey = "maxHit";
-	if (sortkey == "maxheal") sortkey = "maxHeal";
+	else if (sortkey == "maxhit") sortkey = "maxHit";
+	else if (sortkey == "maxheal") sortkey = "maxHeal";
 
 	return sortkey;
 }
 
+// 랭크를 재지정합니다. 소환수와 분리/합산 했을 때 재호출을 해야 작동하는 Skin 들이 있습니다.
+// 일반적으로는 호출하지 않고 sortkeyChange(e) 또는 sortkeyChangeDesc(e) 를 사용해주시기 바랍니다.
+// void : CombatantObject.rerank (bool asc = true)
 Combatant.prototype.rerank = function(asc)
 {
 	// sort methods
@@ -564,36 +596,85 @@ Combatant.prototype.rerank = function(asc)
 	}
 }
 
+// e 는 sort 할 key 값 입니다.
+// SummonerMerge 상태에 따라 정렬할 값을 바꾸어 줍니다. merged 속성은 사용하지 않습니다.
+// void : CombatantObject.sortkeyChange (string e)
 Combatant.prototype.sortkeyChange = function(e)
 {
 	this.sortkey = e;
 	this.rerank();
 }
 
-Combatant.prototype.getData = function(c)
+// e 는 sort 할 key 값 입니다.
+// SummonerMerge 상태에 따라 정렬할 값을 바꾸어 줍니다. merged 속성은 사용하지 않습니다. 오름차순으로 정렬합니다.
+// void : CombatantObject.sortkeyChangeDesc (string e)
+Combatant.prototype.sortkeyChangeDesc = function(e)
 {
-	for(var i in this.persons)
-	{
-		if(this.persons[i].name == c)
-			return this.persons[i];
-	}
+	this.sortkey = e;
+	this.rerank(false);
 }
 
+// 소환수 합산 상태와 비합산 상태의 가져올 값을 변환해 줍니다.
+// 직접 호출하기 위한 함수로, 호출 시 소환수와 합산할 것인지 결정해야 합니다.
+// string : activeSort (string sortKey, bool summonerMerge)
+function activeSort(sortKey, summonerMerge)
+{
+	var sortkey = sortKey;
+	if (summonerMerge)
+	{
+		switch(sortkey)
+		{
+			case "damage" : sortkey = "mergedDamage"; break;
+			case "healed" : sortkey = "mergedHealed"; break;
+			case "hits" : sortkey = "mergedHits"; break;
+			case "misses" : sortkey = "mergedHits"; break;
+			case "swings" : sortkey = "mergedSwings"; break;
+			case "heals" : sortkey = "mergedHeals"; break;
+			case "crithits" : sortkey = "mergedCrithits"; break;
+			case "critheals" : sortkey = "mergedCritheals"; break;
+			case "Last10DPS" : sortkey = "mergedLast10DPS"; break;
+			case "Last30DPS" : sortkey = "mergedLast30DPS"; break;
+			case "Last60DPS" : sortkey = "mergedLast60DPS"; break;
+			case "damagetaken" : sortkey = "mergedDamagetaken"; break;
+			case "healstaken" : sortkey = "mergedHealstaken"; break;
+		}
+	}
+	else if (sortkey == "maxhit") sortkey = "maxHit";
+	else if (sortkey == "maxheal") sortkey = "maxHeal";
+
+	return sortkey;
+}
+
+function getLog(e)
+{
+
+}
+
+// 스크린샷 기능을 지원하는지 확인합니다.
+// bool : isSrcEnable()
 function isSrcEnable()
 {
 	try { return srcEnable; } catch(ex) { return false; }
 }
 
+// 인카운터 종료 기능을 지원하는지 확인합니다.
+// bool : isEndEnable()
 function isEndEnable()
 {
 	try { return endEnable; } catch(ex) { return false; }
 }
 
+// 줌 확축 기능을 지원하는지 확인합니다.
+// bool : isZoomEnable()
 function isZoomEnable()
 {
 	try { return zoomEnable; } catch(ex) { return false; }
 }
 
+// 스크린샷 촬영 함수를 호출합니다. UI에 변동이 있는 경우 setTimeout 같은 메소드로 실행을 지연시켜야 합니다.
+// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
+// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
+// void : takeScreenshot()
 function takeScreenshot()
 {
 	if(isSrcEnable())
@@ -606,6 +687,9 @@ function takeScreenshot()
 	}
 }
 
+// ACT 의 End Encounter 를 호출합니다.
+// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
+// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
 function endEncounter()
 {
 	if(isEndEnable())
@@ -618,6 +702,10 @@ function endEncounter()
 	}
 }
 
+// Browser 의 Zoom 사이즈를 변경합니다. 75% 80% 90% 100% 110% 125% 150% 를 지원합니다.
+// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
+// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
+// size 에는 75 80 90 10 11 12 15 를 넣으면 위에 언급된 각각의 비율로 확축 됩니다.
 function zoomResize(size)
 {
 	if(isZoomEnable())
@@ -630,6 +718,8 @@ function zoomResize(size)
 	}
 }
 
+// 이벤트 리스너를 자동으로 추가하도록 지정합니다.
+// 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
 if (document.addEventListener) 
 {
 	// Mozilla, Opera, Webkit 
@@ -665,6 +755,7 @@ function domReady()
 	try { document.addEventListener('onEncounterEndExecuted', onEncounterEndExecuted); } catch (ex) { }
 	try { document.addEventListener('onZoomSizeChanged', onZoomSizeChanged); } catch (ex) { }
 	try { document.addEventListener('onBinaryFileOpen', onBinaryFileOpen); } catch (ex) { }
+	try { document.addEventListener('onLanguageChange', onLanguageChange); } catch (ex) { }
 
 	// File IO (miniparse Extension)
 	try { document.addEventListener('openFileDialog', openFileDialog); } catch (ex) { }
@@ -677,3 +768,4 @@ var lastCombat = null;
 var sortKey = "encdps";
 var underDot = 1;
 var delayOK = true;
+var CombatLog = [];
