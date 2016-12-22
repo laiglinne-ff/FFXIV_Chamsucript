@@ -45,7 +45,7 @@ Number.prototype.nanFix = function()
 }
 
 // string : StringObject.format(ObjectArray a)
-// 사용예 : "{abc}{def}".format({abc:"wow", ghi:" awesome!"}); => return "wow awesome!";
+// 사용예 : "{abc}{def}".format({abc:"wow", def:" awesome!"}); => return "wow awesome!";
 String.prototype.format = function(a)
 {
 	var reg = /(\{([^}]+)\})/im;
