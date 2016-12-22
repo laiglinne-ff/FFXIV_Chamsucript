@@ -3,6 +3,7 @@
 */
 
 // actwebsoket 에서 사용합니다.
+// This function using ACTWebSocket ( Refer https://github.com/ZCube/ACTWebSocket )
 function connectWebSocket(uri)
 {
 	websocket = new WebSocket(uri);
@@ -38,11 +39,6 @@ try
 		connectWebSocket(wsUri);
 }
 catch(ex) { }
-
-Number.prototype.nanFix = function()
-{
-	return (isNaN(this)?0:this);
-}
 
 // string : StringObject.format(ObjectArray a)
 // 사용예 : "{abc}{def}".format({abc:"wow", def:" awesome!"}); => return "wow awesome!";
@@ -89,6 +85,11 @@ String.prototype.replaceArray = function(a)
 	return r;
 }
 
+Number.prototype.nanFix = function()
+{
+	return (isNaN(this)?0:this);
+}
+
 // language 객체 입니다.
 function Language(l)
 {
@@ -100,7 +101,6 @@ function Language(l)
 		"WAR":"戦",
 		"MRD":"斧術士",
 		"DRK":"暗",
-		
 		"MNK":"モンク",
 		"PGL":"格闘士",
 		"DRG":"竜",
@@ -113,7 +113,6 @@ function Language(l)
 		"SMN":"召",
 		"THM":"呪術士",
 		"BLM":"黒",
-		
 		"WHM":"白",
 		"CNJ":"幻術士",
 		"SCH":"学",
@@ -131,7 +130,6 @@ function Language(l)
 		"WAR":"WAR",
 		"MRD":"MRD",
 		"DRK":"DRK",
-		
 		"MNK":"MNK",
 		"PGL":"PGL",
 		"DRG":"DRG",
@@ -144,7 +142,6 @@ function Language(l)
 		"SMN":"SMN",
 		"THM":"THM",
 		"BLM":"BLM",
-		
 		"WHM":"WHM",
 		"CNJ":"CNJ",
 		"SCH":"SCH",
@@ -162,7 +159,6 @@ function Language(l)
 		"WAR":"전사",
 		"MRD":"도끼술사",
 		"DRK":"암흑기사",
-		
 		"MNK":"몽크",
 		"PGL":"격투사",
 		"DRG":"류상",
@@ -175,7 +171,6 @@ function Language(l)
 		"SMN":"소환사",
 		"THM":"주술사",
 		"BLM":"흑마도사",
-		
 		"WHM":"백마도사",
 		"CNJ":"환술사",
 		"SCH":"학자",
@@ -248,24 +243,6 @@ function Person(e, c)
 	this.healedPct = 0;
 	this.invalidheal = parseInt(this.healed / 100 * this.OverHealPct).nanFix();
 	this.validheal = parseInt(this.healed - this.invalidheal);
-	this.colors = {
-		"PLD":[200, 255, 255],
-		"WAR":[200, 40, 30],
-		"DRK":[130, 40, 50],
-		
-		"MNK":[180, 140, 20],
-		"DRG":[50, 90, 240],
-		"NIN":[80, 70, 90],
-		"BRD":[180, 200, 80],
-		"MCH":[130, 255, 240],
-		"SMN":[40, 150, 0],
-		"BLM":[100, 70, 150],
-		
-		"WHM":[200, 195, 170],
-		"SCH":[60, 60, 160],
-		"AST":[200, 130, 90],
-		"LMB":[255, 204, 0]
-	};
 
 	this.mergedDamage = this.damage;
 	this.mergedHealed = this.healed;
@@ -395,12 +372,12 @@ function Person(e, c)
 // object : PersonObject.getColor(int r, int g, int b)
 Person.prototype.getColor = function(r, g, b)
 {
-	if(this.colors[this.Class] != undefined)
+	if(jobColors[this.Class] != undefined)
 	{
 		if(r==undefined) var r = 0;
 		if(g==undefined) var g = 0;
 		if(b==undefined) var b = 0;
-		return {"R":(this.colors[this.Class][0]+r), "G":(this.colors[this.Class][1]+g), "B":(this.colors[this.Class][2]+b)};
+		return {"R":(jobColors[this.Class][0]+r), "G":(jobColors[this.Class][1]+g), "B":(jobColors[this.Class][2]+b)};
 	}
 	else
 	{
@@ -795,6 +772,13 @@ function domReady()
 	try { document.addEventListener('getFileList', getFileList); } catch (ex) { }
 	try { document.addEventListener('getDirectoryList', getDirectoryList); } catch (ex) { }
 	try { document.addEventListener('afterLoadFile', afterLoadFile); } catch (ex) { }
+	window.addEventListener('message', onMessage);
+}
+
+function onMessage(e) 
+{
+	if (e.data.type === 'onOverlayDataUpdate') 
+		onOverlayDataUpdate(e.data);
 }
 
 var lastCombat = null;
@@ -802,3 +786,21 @@ var sortKey = "encdps";
 var underDot = 1;
 var delayOK = true;
 var CombatLog = [];
+var jobColors = {
+	"PLD":[200, 255, 255],
+	"WAR":[200, 40, 30],
+	"DRK":[130, 40, 50],
+	
+	"MNK":[180, 140, 20],
+	"DRG":[50, 90, 240],
+	"NIN":[80, 70, 90],
+	"BRD":[180, 200, 80],
+	"MCH":[130, 255, 240],
+	"SMN":[40, 150, 0],
+	"BLM":[100, 70, 150],
+	
+	"WHM":[200, 195, 170],
+	"SCH":[60, 60, 160],
+	"AST":[200, 130, 90],
+	"LMB":[255, 204, 0]
+};
