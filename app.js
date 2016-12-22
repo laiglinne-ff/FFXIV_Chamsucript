@@ -509,6 +509,11 @@ function Combatant(e, sortkey, lang)
 		}
 	}
 	this.rerank(this.sortvector);
+
+	if(this.encounter.title != "Encounter")
+	{
+		saveLog(this);
+	}
 }
 
 // combatant 객체가 사용할 Language 객체를 재선언합니다.
