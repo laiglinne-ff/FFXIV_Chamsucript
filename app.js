@@ -16,7 +16,12 @@ function connectWebSocket(uri)
 		}
 		else 
 		{
-			onLogLineRead(evt.data);
+			if(evt.data.type == "onOverlayDataUpdate")
+				onOverlayDataUpdate(evt.data);
+			else if(evt.data.type == "onLogLineRead")
+				onLogLineRead(evt.data);
+			else if(evt.data.type == "beforeLogLineRead")
+				beforeLogLineRead(evt.data);
 		}
 	};
 
@@ -608,7 +613,7 @@ function activeSort(sortKey, summonerMerge)
 
 	if (sortkey == "encdps") sortkey = "damage";
 	else if (sortkey == "enchps") sortkey = "healed";
-	
+
 	if (summonerMerge)
 	{
 		switch(sortkey)
