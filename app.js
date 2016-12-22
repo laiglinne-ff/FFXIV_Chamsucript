@@ -489,7 +489,7 @@ function Combatant(e, sortkey, lang)
 		{
 			if(p.isPet && p.petOwner != "" && p.petType != "Chocobo")
 			{
-				if(this.getData(p.petOwner) !== null)
+				if(this.persons[p.petOwner] !== null)
 				{
 					if(this.noPetPersons.indexOf(p.petOwner) > -1)
 					{
