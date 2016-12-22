@@ -645,9 +645,36 @@ function activeSort(sortKey, summonerMerge)
 	return sortkey;
 }
 
+// bool : getLog(string e)
+// e : combatKey
 function getLog(e)
 {
+	for(var i in CombatLog)
+	{
+		if(CombatLog[i].combatKey == e && lastCombat.encounter.title != "Encounter")
+		{
+			lastCombat = CombatLog[i];
+			document.dispatchEvent(new CustomEvent('onSuccessGetLog', {detail:{ combatant:CombatLog[i] }}));
+			break;
+		}
+	}
+}
 
+// void : saveLog(Combatant e)
+function saveLog(e)
+{
+	var exists = false;
+	for(var i in CombatLog)
+	{
+		if(CombatLog[i].combatKey == e.combatKey)
+			exists = true;
+	}
+
+	if(!exists)
+	{
+		CombatLog.push(e);
+		document.dispatchEvent(new CustomEvent('onSuccessSaveLog', {detail:{ combatant:e }}));
+	}
 }
 
 // 스크린샷 기능을 지원하는지 확인합니다.
