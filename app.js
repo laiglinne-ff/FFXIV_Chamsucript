@@ -16,7 +16,7 @@ function connectWebSocket(uri)
 		}
 		else 
 		{
-			onMessage(evt.data);
+			onMessage(evt);
 		}
 	};
 
