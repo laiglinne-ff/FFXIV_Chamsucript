@@ -784,12 +784,10 @@ function domReady()
 
 function onMessage(e) 
 {
-	if (e.data.type === 'onOverlayDataUpdate') 
-		onOverlayDataUpdate(e.data);
-	else if (e.data.type === 'onLogLineRead') 
-		onLogLineRead(e.data);
-	else if (e.data.type === 'beforeLogLineRead') 
-		beforeLogLineRead(e.data);
+	if(e.data.indexOf("\"Encounter\"") > -1)
+		document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: JSON.parse(e.data) }));
+	else
+		document.dispatchEvent(new CustomEvent('beforeLogLineRead', { detail: e.data }));
 }
 
 var lastCombat = null;
