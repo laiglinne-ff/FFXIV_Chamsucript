@@ -784,6 +784,7 @@ function domReady()
 
 function onMessage(e) 
 {
+	if(isEndEnable()) return;
 	if(e.data.indexOf("\"Encounter\"") > -1)
 		document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: JSON.parse(e.data) }));
 	else
