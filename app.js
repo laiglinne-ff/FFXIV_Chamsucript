@@ -655,9 +655,10 @@ function getLog(e)
 		{
 			lastCombat = CombatLog[i];
 			document.dispatchEvent(new CustomEvent('onSuccessGetLog', {detail:{ combatant:CombatLog[i] }}));
-			break;
+			return true;
 		}
 	}
+	return false;
 }
 
 // void : saveLog(Combatant e)
