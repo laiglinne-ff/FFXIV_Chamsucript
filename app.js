@@ -22,13 +22,11 @@ function connectWebSocket(uri)
 
 	websocket.onclose = function(evt) 
 	{ 
-		console.log("re-connect...");
 		setTimeout(function(){connectWebSocket(uri)}, 5000);
 	};
 
 	websocket.onerror = function(evt) 
 	{
-		console.log(evt);
 		websocket.close();
 	};
 }
