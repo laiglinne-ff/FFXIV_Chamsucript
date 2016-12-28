@@ -1,7 +1,3 @@
-/* -- This Library License Under GNU GPL v2 
-	@Author Laighlinne_ff
-*/
-
 // actwebsoket 에서 사용합니다.
 // This function using ACTWebSocket ( Refer https://github.com/ZCube/ACTWebSocket )
 function connectWebSocket(uri)
@@ -577,55 +573,58 @@ Combatant.prototype.sortkeyChangeDesc = function(e)
 
 // 소환수 합산 상태와 비합산 상태의 가져올 값을 변환해 줍니다.
 // 직접 호출하기 위한 함수로, 호출 시 소환수와 합산할 것인지 결정해야 합니다.
+// 몇가지 ACT 플러그인 자체가 전달하는 data 가 추가/변경 되었으나 일부 유저가 혼동하지 않도록 바꾸어 준다.
 // string : activeSort (string sortKey, bool summonerMerge)
 function activeSort(sortKey, summonerMerge)
 {
 	var sortkey = sortKey;
 
 	if (sortkey == "encdps") sortkey = "damage";
-	else if (sortkey == "enchps") sortkey = "healed";
-
-	if (summonerMerge)
-	{
-		switch(sortkey)
-		{
-			case "damage" : sortkey = "mergedDamage"; break;
-			case "healed" : sortkey = "mergedHealed"; break;
-			case "hits" : sortkey = "mergedHits"; break;
-			case "misses" : sortkey = "mergedHits"; break;
-			case "swings" : sortkey = "mergedSwings"; break;
-			case "heals" : sortkey = "mergedHeals"; break;
-			case "crithits" : sortkey = "mergedCrithits"; break;
-			case "critheals" : sortkey = "mergedCritheals"; break;
-			case "damagetaken" : sortkey = "mergedDamagetaken"; break;
-			case "healstaken" : sortkey = "mergedHealstaken"; break;
-			case "Last10DPS" : sortkey = "mergedLast10DPS"; break;
-			case "Last30DPS" : sortkey = "mergedLast30DPS"; break;
-			case "Last60DPS" : sortkey = "mergedLast60DPS"; break;
-		}
-	}
-
+	if (sortkey == "enchps") sortkey = "healed";
 	if (sortkey == "maxhit") sortkey = "maxHit";
 	if (sortkey == "maxheal") sortkey = "maxHeal";
 
 	switch(sortkey)
 	{
+		case "damage" : 
+			sortkey = "mergedDamage"; break;
+		case "healed" : 
+			sortkey = "mergedHealed"; break;
+		case "hits" : 
+			sortkey = "mergedHits"; break;
+		case "misses" : 
+			sortkey = "mergedHits"; break;
+		case "swings" : 
+			sortkey = "mergedSwings"; break;
+		case "heals" : 
+			sortkey = "mergedHeals"; break;
+		case "crithits" : 
+			sortkey = "mergedCrithits"; break;
+		case "critheals" : 
+			sortkey = "mergedCritheals"; break;
+		case "damagetaken" : 
+			sortkey = "mergedDamagetaken"; break;
+		case "healstaken" : 
+			sortkey = "mergedHealstaken"; break;
+		case "Last10DPS" : 
+			sortkey = "mergedLast10DPS"; break;
+		case "Last30DPS" : 
+			sortkey = "mergedLast30DPS"; break;
+		case "Last60DPS" : 
+			sortkey = "mergedLast60DPS"; break;
+		case "Last180DPS" : 
+			sortkey = "mergedLast180DPS"; break;
 		case "damage%":
-			sortkey = "dmgPct";
-			break;
+			sortkey = "dmgPct"; break;
 		case "crithit%":
-			sortkey = "crithitPct";
-			break;
+			sortkey = "crithitPct"; break;
 		case "critheal%":
-			sortkey = "crithealPct";
-			break;
+			sortkey = "crithealPct"; break;
 		case "healed%":
-			sortkey = "healedPct";
-			break;
+			sortkey = "healedPct"; break;
 		case "overHeal%":
 		case "overHealPct":
-			sortkey = "OverHealPct";
-			break;
+			sortkey = "OverHealPct"; break;
 	}
 
 	return sortkey;
@@ -664,74 +663,6 @@ function saveLog(e)
 	}
 }
 
-// 스크린샷 기능을 지원하는지 확인합니다.
-// bool : isSrcEnable()
-function isSrcEnable()
-{
-	try { return srcEnable; } catch(ex) { return false; }
-}
-
-// 인카운터 종료 기능을 지원하는지 확인합니다.
-// bool : isEndEnable()
-function isEndEnable()
-{
-	try { return endEnable; } catch(ex) { return false; }
-}
-
-// 줌 확축 기능을 지원하는지 확인합니다.
-// bool : isZoomEnable()
-function isZoomEnable()
-{
-	try { return zoomEnable; } catch(ex) { return false; }
-}
-
-// 스크린샷 촬영 함수를 호출합니다. UI에 변동이 있는 경우 setTimeout 같은 메소드로 실행을 지연시켜야 합니다.
-// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
-// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
-// void : takeScreenshot()
-function takeScreenshot()
-{
-	if(isSrcEnable())
-	{
-		console.log("CaptureOverlay");
-	}
-	else
-	{
-		document.dispatchEvent(new CustomEvent('onScreenShotTaked', {detail:{ take:false, fileurl:"" }}));
-	}
-}
-
-// ACT 의 End Encounter 를 호출합니다.
-// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
-// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
-function endEncounter()
-{
-	if(isEndEnable())
-	{
-		console.log("EncounterEnd");
-	}
-	else
-	{
-		document.dispatchEvent(new CustomEvent('onEncounterEndExecuted', {detail:{ take:false }}));
-	}
-}
-
-// Browser 의 Zoom 사이즈를 변경합니다. 75% 80% 90% 100% 110% 125% 150% 를 지원합니다.
-// 지원하지 않는 경우 else 문의 이벤트를 발생시킵니다. 성공 시에는 take 값이 true 로 반환됩니다.
-// Mini Parse Extension 을 사용해야 정상적으로 작동합니다.
-// size 에는 75 80 90 10 11 12 15 를 넣으면 위에 언급된 각각의 비율로 확축 됩니다.
-function zoomResize(size)
-{
-	if(isZoomEnable())
-	{
-		console.log("Zoom"+size);
-	}
-	else
-	{
-		document.dispatchEvent(new CustomEvent('onZoomSizeChanged', {detail:{take:false, zoomsize:0}}));
-	}
-}
-
 // 이벤트 리스너를 자동으로 추가하도록 지정합니다.
 // 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
 if (document.addEventListener) 
@@ -765,23 +696,14 @@ function domReady()
 	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayUpdate is not defined."); }
 	try { document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate); } catch (ex) { }
 	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
-	try { document.addEventListener('onScreenShotTaked', onScreenShotTaked); } catch (ex) { }
-	try { document.addEventListener('onEncounterEndExecuted', onEncounterEndExecuted); } catch (ex) { }
-	try { document.addEventListener('onZoomSizeChanged', onZoomSizeChanged); } catch (ex) { }
-	try { document.addEventListener('onBinaryFileOpen', onBinaryFileOpen); } catch (ex) { }
-	try { document.addEventListener('onLanguageChange', onLanguageChange); } catch (ex) { }
-
-	// File IO (miniparse Extension)
-	try { document.addEventListener('openFileDialog', openFileDialog); } catch (ex) { }
-	try { document.addEventListener('getFileList', getFileList); } catch (ex) { }
-	try { document.addEventListener('getDirectoryList', getDirectoryList); } catch (ex) { }
-	try { document.addEventListener('afterLoadFile', afterLoadFile); } catch (ex) { }
 	window.addEventListener('message', onMessage);
 }
 
 function onMessage(e) 
 {
 	var data = JSON.parse(e.data);
+
+	console.log("read data...");
 
 	if(data["textType"] !== undefined)
 	{
