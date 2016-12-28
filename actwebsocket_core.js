@@ -698,31 +698,27 @@ function domReady()
 	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
 	window.addEventListener('message', onMessage);
 }
-
 function onMessage(e) 
 {
 	var data = JSON.parse(e.data);
-
-	console.log("read data...");
-
-	if(data["textType"] !== undefined)
+	if(data["typeText"] !== undefined)
 	{
-		switch(data.textType)
+		switch(data.typeText)
 		{
 			case "update":
 				switch(data.detail.msgType)
 				{
 					case "ChangeZone":
-
+						document.dispatchEvent(new CustomEvent("onChangeZone", data));
 						break;
 					case "SendCharName":
-
+						document.dispatchEvent(new CustomEvent("onUpdatePlayerName", data));
 						break;
 					case "CombatantDataChange":
-
+						document.dispatchEvent(new CustomEvent("onCombatantDataUpdate", data));
 						break;
 					case "CombatantsList":
-
+						document.dispatchEvent(new CustomEvent("onCombatantListUpdate", data));
 						break;
 				}
 				break;
