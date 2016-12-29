@@ -428,6 +428,7 @@ var oStaticPersons = [];
 
 function staticPerson(e)
 {
+	this.person = e;
 	this.last180ARR = [];
 	this.last180Copy = [];
 	this.polygonPoints = [];
@@ -473,6 +474,7 @@ function Combatant(e, sortkey, lang)
 	for(var p in e.detail.Combatant)
 	{
 		this.persons[p] = new Person(this, p);
+		this.staticPersons.push(this.persons[p]);
 	}
 
 	for(var p in this.persons)
