@@ -262,10 +262,6 @@ function Person(e, c)
 	this.mergedLast60DPS = this.Last60DPS;
 	this.mergedLast180DPS = this.Last180DPS;
 
-	this.last180ARR = [];
-	this.last180Copy = [];
-	this.polygonPoints = [];
-
 	this.petOwner = "";
 	this.petOwnerExists = false;
 	this.petData = [];
@@ -428,12 +424,35 @@ Person.prototype.merge = function(p)
 	this.recalc();
 };
 
+var oStaticPersons = [];
+
+function staticPerson(e)
+{
+	this.last180ARR = [];
+	this.last180Copy = [];
+	this.polygonPoints = [];
+}
+
 // Combatant 객체 입니다. onOverlayDataUpdate 의 EventArgs 를 넣어주면 됩니다.
 // new Combatant(onOverlayDataUpdateEventArgs e, string sortkey = "encdps", string lang = "ko")
 function Combatant(e, sortkey, lang)
 {
 	if(sortkey === null || sortkey === undefined) var sortkey = "encdps";
 	if(lang === null || lang === undefined) var sortkey = "ko";
+
+	this.staticPersons = [];
+
+	if(!e.isActive)
+	{
+		for(var i in oStaticPersons)
+			this.staticPersons.push(oStaticPersons[i]);
+
+		oStaticPersons = [];
+	}
+	else
+	{
+		this.staticPersons = oStaticPersons;
+	}
 
 	this.summonerMerge = true;
 	this.sortkey = sortkey;
