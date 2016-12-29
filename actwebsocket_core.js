@@ -262,6 +262,10 @@ function Person(e, c)
 	this.mergedLast60DPS = this.Last60DPS;
 	this.mergedLast180DPS = this.Last180DPS;
 
+	this.last180ARR = [];
+	this.last180Copy = [];
+	this.polygonPoints = [];
+
 	this.petOwner = "";
 	this.petOwnerExists = false;
 	this.petData = [];
