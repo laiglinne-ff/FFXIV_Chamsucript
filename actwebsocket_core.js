@@ -594,12 +594,14 @@ Combatant.prototype.rerank = function(asc)
 			this.maxValue = parseInt(this.persons[p][this.activeSort()]);
 		}
 
-		this.maxdamage = this.maxValue;
-		this.persons[p].maxdamage = this.maxValue;
-
 		if(this.persons[p].isPet && this.persons[p].petOwner != "" && this.persons[p].petType != "Chocobo" && this.summonerMerge) continue;
 		this.persons[p].rank = i++;
 	}
+
+	this.maxdamage = this.maxValue;
+
+	for(var p in this.persons)
+		this.persons[p].maxdamage = this.maxValue;
 }
 
 // e 는 sort 할 key 값 입니다.
