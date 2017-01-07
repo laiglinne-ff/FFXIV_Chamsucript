@@ -750,9 +750,10 @@ function domReady()
 	window.addEventListener('message', onMessage);
 
 }
+
 function onMessage(e) 
 {
-	var data = JSON.parse(e.data);
+	var data = JSON.parse(e.data.replace(/'/, "\\'"));
 	if(data["typeText"] !== undefined)
 	{
 		switch(data.typeText)
@@ -775,8 +776,7 @@ function onMessage(e)
 				}
 				break;
 			case "encounter":
-				if(data.detail !== undefined)
-					document.dispatchEvent(new CustomEvent("onOverlayDataUpdate", data));
+				document.dispatchEvent(new CustomEvent("onOverlayDataUpdate", data));
 				break;
 			case "error":
 				// do something
