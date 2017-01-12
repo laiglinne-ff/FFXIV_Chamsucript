@@ -242,20 +242,21 @@ function domReady()
 // ACTWebSocket 적용
 class WebSocketImpl extends ActWebsocketInterface
 {
-  constructor(uri, path = "MiniParse") {
-      super(uri, path);
-  }
-  //send(to, type, msg)
-  //broadcast(type, msg)
-  onRecvMessage(e)
-  {
-    onRecvMessage(e);
-  }
+    constructor(uri, path = "MiniParse") 
+    {
+        super(uri, path);
+    }
+    //send(to, type, msg)
+    //broadcast(type, msg)
+    onRecvMessage(e)
+    {
+        onRecvMessage(e);
+    }
 
-  onBroadcastMessage(e)
-  {
-    onBroadcastMessage(e);
-  }
+    onBroadcastMessage(e)
+    {
+        onBroadcastMessage(e);
+    }
 };
 
 var webs = null;
