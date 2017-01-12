@@ -846,7 +846,7 @@ function saveLog(e)
 
 function pFloat(num)
 {
-    return parseFloat(num.toFixed(underDot));
+    return parseFloat(num.nanFix().toFixed(underDot));
 }
 
 var combatLog = [];
