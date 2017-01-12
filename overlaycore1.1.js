@@ -181,6 +181,17 @@ if (document.addEventListener)
 		document.removeEventListener("DOMContentLoaded", arguments.callee, false);
 		domReady();
 	}, false);
+
+    /* ACTWebSocket 적용 */
+    window.onbeforeunload = function() 
+    {
+        webs.close();
+    };
+    
+    window.addEventListener("unload", function() 
+    {
+        webs.close();
+    }, false);
 }
 else if (document.attachEvent) 
 {
@@ -209,6 +220,10 @@ window.addEventListener('message', function (e)
 
 function domReady() 
 {
+    /* ACTWebSocket 적용 */
+    webs = new WebSocketImpl(wsUri);
+    webs.connect();
+
     document.addEventListener('onBroadcastMessage', onBroadcastMessage);
     document.addEventListener('onRecvMessage', onRecvMessage);
 
@@ -244,19 +259,6 @@ class WebSocketImpl extends ActWebsocketInterface
 };
 
 var webs = null;
-$(document).ready(function() {
-  webs = new WebSocketImpl(wsUri);
-  webs.connect();
-});
-if (document.addEventListener) {
-  window.onbeforeunload = function() {
-      webs.close();
-  };
-  window.addEventListener("unload", function() {
-      webs.close();
-  }, false);
-}
-
 
 function onRecvMessage(e)
 {
