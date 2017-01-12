@@ -521,7 +521,10 @@ Person.prototype.returnOrigin = function()
 {
     for(var i in this.original)
     {
-        this[i.substr(0,1).toLowerCase()+i.substr(1)] = this.original[i];
+        if (i.indexOf("Last") > -1)
+            this[i] += this.original[i];
+        else
+            this[i.substr(0,1).toLowerCase()+i.substr(1)] = this.original[i];
     }
 
     this.recalculate();
@@ -531,7 +534,10 @@ Person.prototype.merge = function(person)
 {
     for(var i in this.original)
     {
-        this[i.substr(0,1).toLowerCase()+i.substr(1)] += person.original[i];
+        if (i.indexOf("Last") > -1)
+            this[i] += person.original[i];
+        else
+            this[i.substr(0,1).toLowerCase()+i.substr(1)] += person.original[i];
     }
 
     this.recalculate();
@@ -559,6 +565,11 @@ Person.prototype.recalculate = function()
 
     this["damage%"] = pFloat(this.damage / this.parent.Encounter.damage);
     this["healed%"] = pFloat(this.healed / this.parent.Encounter.healed);
+
+    this["crithit%"] = pFloat(this.crithits / this.hits);
+    this["critheal%"] = pFloat(this.critheals / this.heals);
+
+    this.tohit = pFloat(this.hits / this.swings);
 }
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
@@ -648,14 +659,9 @@ function Combatant(e, sortkey)
 	this.langpack = new Language(lang);
     this.isActive = e.detail.isActive;
 	this.combatKey = this.Encounter.title.concat(this.Encounter.damage).concat(this.Encounter.healed);
+    this.persons = this.Combatant;
 
     this.sort();
-
-    for(var i in this.Combatant)
-    {
-        console.log(i+"("+this.Combatant[i].rank+") : "+this.Combatant[i][this.sortkey]);
-    } 
-
     console.log(this);
 }
 
@@ -694,6 +700,8 @@ Combatant.prototype.sort = function()
         }
         this.Combatant[i].rank = r++;
     }
+
+    this.persons = this.Combatant;
 }
 
 Combatant.prototype.resort = function(key)
