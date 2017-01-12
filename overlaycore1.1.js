@@ -593,7 +593,7 @@ Person.prototype.getColor = function(r, g, b)
 
 function Combatant(e, sortkey)
 {
-    if (sortkey == undefined) var sortkey = "enchps";
+    if (sortkey == undefined) var sortkey = "encdps";
     if (lang == undefined) var lang = "ko";
 
     this.Encounter = {};
