@@ -1,4 +1,4 @@
-if (wsUri != undefined)
+if (wsUri !== undefined)
 {
     if (wsUri.indexOf("@HOST_PORT@") > -1)
     {
@@ -399,6 +399,7 @@ function Person(e, p)
     this.isPet = false;
     this.role = "DPS";
     this.rank = 0;
+    this.maxdamage = 0;
 
     // Give Job
     switch(this.Job)
@@ -685,7 +686,7 @@ function Combatant(e, sortkey)
 	this.combatKey = this.Encounter.title.concat(this.Encounter.damage).concat(this.Encounter.healed);
     this.persons = this.Combatant;
 
-    this.sort();
+    this.resort();
 }
 
 // Rank를 다시 부여하고 Combatant의 sortkey에 따라 다시 정렬합니다.
@@ -713,7 +714,8 @@ Combatant.prototype.sort = function(vector)
     else
         tmp.sort(function(a, b){return a.key - b.key});
 
-    this.maxValue = this.maxdamage = tmp[0].key;
+    this.maxValue = tmp[0].key;
+    this.maxdamage = tmp[0].key;
 
     for(var i in tmp)
     {
@@ -730,6 +732,7 @@ Combatant.prototype.sort = function(vector)
             continue;
         }
         this.Combatant[i].rank = r++;
+        this.Combatant[i].maxdamage = this.maxdamage;
     }
 
     this.persons = this.Combatant;
@@ -759,7 +762,14 @@ Combatant.prototype.sortkeyChangeDesc = function(key)
 // using this
 Combatant.prototype.resort = function(key, vector)
 {
-    this.sortkey = activeSort(key);
+    if (key == undefined) 
+        this.sortkey = activeSort(this.sortkey);
+    else
+        this.sortkey = activeSort(key);
+
+    if (vector == undefined)
+        vector = this.sortvector;
+
     this.sort(vector);
 };
 
@@ -785,7 +795,19 @@ function activeSort(key, merge)
     
     if (key.indexOf("Pct") > -1 && key.indexOf("overHealPct") == -1)
         key = key.replace(/Pct/ig, "%");
+
+    if (key == "encdps" || key == "dps")
+        key = "damage";
     
+    if (key == "enchps" || key == "hps")
+        key = "healed";
+    
+    if (key == "maxhit")
+        key = "maxhitval";
+    
+    if (key == "maxheal")
+        key = "maxhealval";
+
     return key;
 }
 
@@ -843,6 +865,29 @@ function pFloat(num)
 {
     return parseFloat(num.toFixed(underDot));
 }
+
+function myhpconvert(cur, max)
+{
+    var color = "rgb(0,224,0)";
+    maxhp = max;
+    curhp = cur;
+
+    if (maxhp < curhp)
+        curhp = maxhp;
+
+    perc = (curhp / (maxhp * 1.0)).toFixed(2);
+    if(perc > 0.75) color = "rgb(0,224,0)";
+    else if(perc > 0.35 && perc <= 0.75) color = "rgb(255, 192, 0)";
+    else color = "rgb(192, 0, 0)";
+
+    $("#hpbar").css({"width":((320 * perc)+16)+"px", "fill":color});
+}
+
+setInterval(function(){
+    // Battle Auto Recovery
+    curhp = curhp + (maxhp / 100);
+    myhpconvert(curhp, maxhp);
+}, 3000);
 
 var combatLog = [];
 var combatants = [];
