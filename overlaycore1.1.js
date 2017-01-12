@@ -519,7 +519,7 @@ function Person(e, p)
     };
 
     // 펫인데 클래스도 있는데 오너가 없으면 YOU
-    if (this.isPet && this.Class != "" && this.parent.Combatant[this.petOwner] == undefined)
+    if (this.isPet && this.Class != "" && this.parent.users[this.petOwner] == undefined)
     {
         this.petOwner = "YOU";
     }
@@ -530,9 +530,9 @@ Person.prototype.returnOrigin = function()
     for(var i in this.original)
     {
         if (i.indexOf("Last") > -1)
-            this[i] += this.original[i];
+            this["merged"+i] = this[i];
         else
-            this[i.substr(0,1).toLowerCase()+i.substr(1)] = this.original[i];
+            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
     }
 
     this.recalculate();
@@ -543,11 +543,17 @@ Person.prototype.merge = function(person)
     for(var i in this.original)
     {
         if (i.indexOf("Last") > -1)
-            this[i] += person.original[i];
+            this["merged"+i] = this[i] + person.original[i];
         else
-            this[i.substr(0,1).toLowerCase()+i.substr(1)] += person.original[i];
+            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)] + person.original[i];
     }
 
+    this.recalculate();
+}
+
+// old version
+Person.prototype.recalc = function()
+{
     this.recalculate();
 }
 
@@ -604,6 +610,12 @@ function Combatant(e, sortkey)
 
     this.Encounter = {};
     this.Combatant = {};
+    this.users = {};
+
+    for (var i in e.detail.Combatant)
+    {
+        this.users[i] = true;
+    }
     
     // 모든 Encounter 값을 가지고 있게끔
     for(var i in e.detail.Encounter)
@@ -676,8 +688,16 @@ function Combatant(e, sortkey)
 // Rank를 다시 부여하고 Combatant의 sortkey에 따라 다시 정렬합니다.
 // 이 과정에서 maxValue (최대값)을 가져옵니다.
 // 소환수 값 합산/해제 시 다시 호출할 때 사용합니다.
-Combatant.prototype.sort = function()
+Combatant.prototype.rerank = function(vector)
 {
+    this.sort(vector);
+}
+
+Combatant.prototype.sort = function(vector)
+{
+    if (vector != undefined) 
+        this.sortvector = vector;
+
     var tmp = [];
     var r = 0;
 
@@ -699,7 +719,7 @@ Combatant.prototype.sort = function()
 
     for (var i in this.Combatant)
     {
-
+        this.Combatant[i].returnOrigin();
         if (this.Combatant[i].isPet && this.summonerMerge) 
         {
             this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
@@ -736,6 +756,14 @@ Combatant.prototype.sortkeyChangeDesc = function(key)
 // using this
 Combatant.prototype.resort = function(key, vector)
 {
+    this.sortkey = activeSort(key);
+    this.sort(vector);
+}
+
+var oStaticPersons = [];
+
+function activeSort(key, merge)
+{
     if (key.indexOf("merged") > -1)
     {
         if (key.indexOf("Last") > -1)
@@ -755,12 +783,8 @@ Combatant.prototype.resort = function(key, vector)
     if (key.indexOf("Pct") > -1 && key.indexOf("overHealPct") == -1)
         key = key.replace(/Pct/ig, "%");
     
-    this.sortkey = key;
-    this.sortvector = vector;
-    this.sort();
+    return key;
 }
-
-var oStaticPersons = [];
 
 function staticPerson(e)
 {
