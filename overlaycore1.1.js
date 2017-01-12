@@ -280,33 +280,16 @@ function onBroadcastMessage(e)
         switch(e.detail.msgtype)
         {
             case "SendCharName":
-                myID = e.detail.msg.charID;
-                myName = e.detail.msg.charName;
-                $("#myname").html(myName);
-                if (combatants[myID] !== undefined && combatants[myID] !== null)
-                {
-                    var max = combatants[myID].max_hp;
-                    myhpconvert(max, max);
-                }
+                document.dispatchEvent(new CustomEvent("onCharacterNameRecive", { detail: e.detail.msg } ));
                 break;
             case "AddCombatant":
-                combatants[e.detail.msg.id] = e.detail.msg;
-                if (e.detail.msg.id == myID)
-                {
-                    var max = combatants[e.detail.msg.id].max_hp;
-                    myhpconvert(max, max);
-                }
+            
                 break;
             case "RemoveCombatant":
                 combatants[e.detail.msg.id] = null;
                 break;
             case "AbilityUse":
-                if (e.detail.msg.id == myID)
-                {
-                    var max = e.detail.msg.max_hp;
-                    var cur = e.detail.msg.cur_hp;
-                    myhpconvert(cur, max);
-                }
+            
                 break;
         }
     }
@@ -865,29 +848,6 @@ function pFloat(num)
 {
     return parseFloat(num.toFixed(underDot));
 }
-
-function myhpconvert(cur, max)
-{
-    var color = "rgb(0,224,0)";
-    maxhp = max;
-    curhp = cur;
-
-    if (maxhp < curhp)
-        curhp = maxhp;
-
-    perc = (curhp / (maxhp * 1.0)).toFixed(2);
-    if(perc > 0.75) color = "rgb(0,224,0)";
-    else if(perc > 0.35 && perc <= 0.75) color = "rgb(255, 192, 0)";
-    else color = "rgb(192, 0, 0)";
-
-    $("#hpbar").css({"width":((320 * perc)+16)+"px", "fill":color});
-}
-
-setInterval(function(){
-    // Battle Auto Recovery
-    curhp = curhp + (maxhp / 100);
-    myhpconvert(curhp, maxhp);
-}, 3000);
 
 var combatLog = [];
 var combatants = [];
