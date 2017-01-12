@@ -1,8 +1,11 @@
-if (wsUri != undefined && wsUri.indexOf("@HOST_PORT@") > -1)
+if (wsUri != undefined)
 {
-    var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
-    var match = wsUri.match(reg);
-    wsUri = "ws://127.0.0.1:10501/"+match[1];
+    if (wsUri.indexOf("@HOST_PORT@") > -1)
+    {
+        var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
+        var match = wsUri.match(reg);
+        wsUri = "ws://127.0.0.1:10501/"+match[1];
+    }
 }
 
 // string : StringObject.format(ObjectArray a)
