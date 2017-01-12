@@ -827,6 +827,37 @@ function safeAdd (x, y)
     return (b << 16) | (a & 0xFFFF);
 }
 
+function hexColor(str)
+{
+    var str = str.replace("#", "");
+
+    if (str.length == 6 || str.length == 3)
+    {
+        if (str.length == 6)
+            return [parseInt(str.substr(0,2), 16), parseInt(str.substr(2,2), 16), parseInt(str.substr(4,2), 16)];
+        else
+            return [parseInt(str.substr(0,1), 16), parseInt(str.substr(1,1), 16), parseInt(str.substr(2,1), 16)];
+    }
+    else
+    {
+        return [0, 0, 0];
+    }
+}
+
+function oHexColor(str)
+{
+    var data = hexColor(str);
+    return {r:data[0], g:data[1], b:data[2]};
+}
+
+function oHexArgb(str)
+{
+    if (str.length < 8) return {a:0, r:0, g:0, b:0};
+    var data = oHexColor(str.replace("#", "").substr(2,6));
+    var rgb = str.replace("#", "");
+    return {a:parseFloat((parseInt(rgb.substr(0,2), 16)/255).toFixed(2)), r:data.r, g:data.g, b:data.b};
+}
+
 // void : saveLog(Combatant e)
 function saveLog(e)
 {
