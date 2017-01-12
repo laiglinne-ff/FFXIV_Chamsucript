@@ -515,6 +515,12 @@ function Person(e, p)
         Last60DPS:this.Last60DPS,
         Last180DPS:this.Last180DPS,
     };
+
+    // 펫인데 클래스도 있는데 오너가 없으면 YOU
+    if (this.isPet && this.Class != "" && this.parent.Combatant[this.petOwner] == undefined)
+    {
+        this.petOwner = "YOU";
+    }
 }
 
 Person.prototype.returnOrigin = function()
@@ -704,9 +710,64 @@ Combatant.prototype.sort = function()
     this.persons = this.Combatant;
 }
 
-Combatant.prototype.resort = function(key)
+// combatant 객체가 사용할 Language 객체를 재선언합니다.
+// void : Combatant.changeLang(string lang)
+// onLanguageChange 이벤트를 발생시킵니다. 변경시 해야 할 작업을 정해주면 됩니다.
+Combatant.prototype.changeLang = function(lang)
 {
+	this.langpack = new Language(lang);
+	document.dispatchEvent(new CustomEvent('onLanguageChange', {detail:{language:lang, combatant:this}}));
+}
+
+// old version function
+Combatant.prototype.sortkeyChange = function(key)
+{
+    this.resort(key, true);
+}
+
+// old version function
+Combatant.prototype.sortkeyChangeDesc = function(key)
+{
+    this.resort(key, false);
+}
+
+// using this
+Combatant.prototype.resort = function(key, vector)
+{
+    if (key.indexOf("merged") > -1)
+    {
+        if (key.indexOf("Last") > -1)
+        {
+            key = key.replace(/merged/ig, "");
+        }
+        else
+        {
+            key = key.replace(/merged/ig, "");
+            key = key.substr(0, 1).toLowerCase() + key.substr(1);
+        }
+    }
+
+    if (key == "dmgPct")
+        key = "damage%";
     
+    if (key.indexOf("Pct") > -1 && key.indexOf("overHealPct") == -1)
+        key = key.replace(/Pct/ig, "%");
+    
+    this.sortkey = key;
+    this.sortvector = vector;
+    this.sort();
+}
+
+var oStaticPersons = [];
+
+function staticPerson(e)
+{
+	var d = new Date();
+	this.createTime = d.getTime();
+	this.person = e;
+	this.last180ARR = [];
+	this.last180Copy = [];
+	this.polygonPoints = [];
 }
 
 // bool : getLog(string e)
