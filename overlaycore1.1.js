@@ -17,13 +17,13 @@ String.prototype.format = function(a)
 		result = result.replace("{"+i+"}", a[i]);
 
 	return result;
-}
+};
 
 String.prototype.contains = function(a)
 {
 	if(this.indexOf(a) > -1) return true;
 	else return false;
-}
+};
 
 String.prototype.replaceArray = function(a)
 {
@@ -33,12 +33,12 @@ String.prototype.replaceArray = function(a)
 			r = r.replace(a[i].target, a[i].replacement);
 
 	return r;
-}
+};
 
 Number.prototype.nanFix = function()
 {
 	return parseFloat(isNaN(this)?0:this);
-}
+};
 
 Number.prototype.numFormat = new function()
 {
@@ -61,7 +61,7 @@ Number.prototype.numFormat = new function()
     {
         return "0";
     }
-}
+};
 
 // language 객체 입니다.
 function Language(l)
@@ -169,7 +169,7 @@ Language.prototype.get = function(v)
 	{
 		return v;
 	}
-}
+};
 
 // 이벤트 리스너를 자동으로 추가하도록 지정합니다.
 // 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
@@ -536,7 +536,7 @@ Person.prototype.returnOrigin = function()
     }
 
     this.recalculate();
-}
+};
 
 Person.prototype.merge = function(person)
 {
@@ -549,13 +549,13 @@ Person.prototype.merge = function(person)
     }
 
     this.recalculate();
-}
+};
 
 // old version
 Person.prototype.recalc = function()
 {
     this.recalculate();
-}
+};
 
 Person.prototype.recalculate = function()
 {
@@ -584,7 +584,7 @@ Person.prototype.recalculate = function()
     this["critheal%"] = pFloat(this.critheals / this.heals);
 
     this.tohit = pFloat(this.hits / this.swings);
-}
+};
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
 // object : PersonObject.getColor(int r, int g, int b)
@@ -601,7 +601,7 @@ Person.prototype.getColor = function(r, g, b)
 	{
 		return {"R":240, "G":220, "B":110};
 	}
-}
+};
 
 function Combatant(e, sortkey)
 {
@@ -691,7 +691,7 @@ function Combatant(e, sortkey)
 Combatant.prototype.rerank = function(vector)
 {
     this.sort(vector);
-}
+};
 
 Combatant.prototype.sort = function(vector)
 {
@@ -730,7 +730,7 @@ Combatant.prototype.sort = function(vector)
     }
 
     this.persons = this.Combatant;
-}
+};
 
 // combatant 객체가 사용할 Language 객체를 재선언합니다.
 // void : Combatant.changeLang(string lang)
@@ -739,26 +739,26 @@ Combatant.prototype.changeLang = function(lang)
 {
 	this.langpack = new Language(lang);
 	document.dispatchEvent(new CustomEvent('onLanguageChange', {detail:{language:lang, combatant:this}}));
-}
+};
 
 // old version function
 Combatant.prototype.sortkeyChange = function(key)
 {
     this.resort(key, true);
-}
+};
 
 // old version function
 Combatant.prototype.sortkeyChangeDesc = function(key)
 {
     this.resort(key, false);
-}
+};
 
 // using this
 Combatant.prototype.resort = function(key, vector)
 {
     this.sortkey = activeSort(key);
     this.sort(vector);
-}
+};
 
 var oStaticPersons = [];
 
