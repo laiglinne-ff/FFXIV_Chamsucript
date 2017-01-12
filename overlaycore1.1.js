@@ -682,7 +682,6 @@ function Combatant(e, sortkey)
     this.persons = this.Combatant;
 
     this.sort();
-    console.log(this);
 }
 
 // Rank를 다시 부여하고 Combatant의 sortkey에 따라 다시 정렬합니다.
