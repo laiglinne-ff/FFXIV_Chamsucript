@@ -323,7 +323,7 @@ function Person(e, p)
         {
             var tmp = parseFloat(e[i].replace(/[,%]+/ig, "")).nanFix().toFixed(underDot);
             if (e[i].indexOf("%") > 0)
-                this[i] = (tmp / 100);
+                this[i] = parseFloat(tmp);
             else if (Math.floor(tmp) != tmp || e[i].indexOf(".") > 0)
                 this[i] = parseFloat(tmp);
             else
@@ -565,13 +565,13 @@ Person.prototype.recalculate = function()
     this["ENCDPS-k"] = Math.floor(this.encdps / 1000);
     this["ENCHPS-k"] = Math.floor(this.enchps / 1000);
 
-    this["damage%"] = pFloat(this.damage / this.parent.Encounter.damage);
-    this["healed%"] = pFloat(this.healed / this.parent.Encounter.healed);
+    this["damage%"] = pFloat(this.damage / this.parent.Encounter.damage * 100);
+    this["healed%"] = pFloat(this.healed / this.parent.Encounter.healed * 100);
 
-    this["crithit%"] = pFloat(this.crithits / this.hits);
-    this["critheal%"] = pFloat(this.critheals / this.heals);
+    this["crithit%"] = pFloat(this.crithits / this.hits * 100);
+    this["critheal%"] = pFloat(this.critheals / this.heals * 100);
 
-    this.tohit = pFloat(this.hits / this.swings);
+    this.tohit = pFloat(this.hits / this.swings * 100);
 };
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
@@ -621,7 +621,7 @@ function Combatant(e, sortkey)
         {
             var tmp = parseFloat(e.detail.Encounter[i].replace(/[,%]+/ig, "")).nanFix().toFixed(underDot);
             if (e.detail.Encounter[i].indexOf("%") > 0)
-                this.Encounter[i] = (tmp / 100);
+                this.Encounter[i] = parseFloat(tmp);
             else if (Math.floor(tmp) != tmp || e.detail.Encounter[i].indexOf(".") > 0)
                 this.Encounter[i] = parseFloat(tmp);
             else
