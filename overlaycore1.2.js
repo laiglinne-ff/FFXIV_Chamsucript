@@ -467,7 +467,7 @@ function onBroadcastMessage(e)
 
         if (lastCombat != undefined)
             if (e.detail.msg.Encounter.DPS == lastCombat.Encounter.DPS) return;
-
+            
         lastCombat = new Combatant(e.detail.msg);
     }
     else
