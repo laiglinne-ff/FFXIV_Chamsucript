@@ -480,6 +480,12 @@ function onBroadcastMessage(e)
         {
             case "SendCharName":
                 document.dispatchEvent(new CustomEvent("onCharacterNameRecive", { detail: e.detail.msg } ));
+				myName = e.detail.msg.charName;
+
+				if (lastCombat != null)
+				{
+					lastCombat.Combatant["YOU"].displayName = myName;
+				}
                 break;
             case "AddCombatant":
             
@@ -575,6 +581,7 @@ function Person(e, p)
     this.role = "DPS";
     this.rank = 0;
     this.maxdamage = 0;
+	this.displayName = this.name;
 
     // Give Job
     switch(this.Job)
