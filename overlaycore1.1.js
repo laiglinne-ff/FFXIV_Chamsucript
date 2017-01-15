@@ -8,6 +8,19 @@ if (wsUri !== undefined)
     }
 }
 
+var Debug = new dbg(true);
+
+function dbg(v)
+{
+	this.debug = v;
+
+	this.log = function(object)
+	{
+		if (this.debug)
+			console.log(object);
+	}
+};
+
 class ActWebsocketInterface
 {
 	constructor(uri, path = "MiniParse") 
@@ -139,7 +152,7 @@ class ActWebsocketInterface
 	onerror(evt) 
     {
 		this.websocket.close();
-		console.log(evt);
+		Debug.log(evt);
 	}
 
 	getQuerySet() 
@@ -710,6 +723,14 @@ function Person(e, p)
     {
         this.petOwner = "YOU";
     }
+
+    for(var i in this.original)
+    {
+        if (i.indexOf("Last") > -1)
+            this["merged"+i] = this[i];
+        else
+            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
+    }
 }
 
 Person.prototype.returnOrigin = function()
@@ -721,8 +742,6 @@ Person.prototype.returnOrigin = function()
         else
             this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
     }
-
-    this.recalculate();
 };
 
 Person.prototype.merge = function(person)
@@ -734,6 +753,8 @@ Person.prototype.merge = function(person)
         else
             this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)] + person.original[i];
     }
+
+	Debug.log("merge "+this.name+" << "+person.name);
 
     this.recalculate();
 };
@@ -789,6 +810,11 @@ Person.prototype.getColor = function(r, g, b)
 		return {"R":240, "G":220, "B":110};
 	}
 };
+
+Person.prototype.get = function(key)
+{
+	return this[key];
+}
 
 function Combatant(e, sortkey)
 {
@@ -879,10 +905,58 @@ Combatant.prototype.rerank = function(vector)
     this.sort(vector);
 };
 
+Combatant.prototype.indexOf = function(person)
+{
+	var v = -1;
+	for(var i in this.Combatant)
+	{
+		v++;
+		if ( i == person)
+			return v;
+	}
+
+	return v;
+};
+
 Combatant.prototype.sort = function(vector)
 {
     if (vector != undefined) 
         this.sortvector = vector;
+
+	if (this.summonerMerge)
+	{
+		switch (this.sortkey)
+		{
+			case "damage" : this.sortkey = "mergedDamage"; break;
+			case "hits" : this.sortkey = "mergedHits"; break;
+			case "misses" : this.sortkey = "mergedMisses"; break;
+			case "swings" : this.sortkey = "mergedSwings"; break;
+			case "crithits" : this.sortkey = "mergedCrithits"; break;
+			case "damagetaken" : this.sortkey = "mergedDamagetaken"; break;
+			// heals
+			case "heals" : this.sortkey = "mergedHeals"; break;
+			case "healed" : this.sortkey = "mergedHealed"; break;
+			case "critheals" : this.sortkey = "mergedCritheals"; break;
+			case "healstaken" : this.sortkey = "mergedHealstaken"; break;
+			case "damageShield" : this.sortkey = "mergedDamageShield"; break;
+			case "overHeal" : this.sortkey = "mergedOverHeal"; break;
+			case "absorbHeal" : this.sortkey = "mergedAbsorbHeal"; break;
+			// lastdps
+			case "Last10DPS" : this.sortkey = "mergedLast10DPS"; break;
+			case "Last30DPS" : this.sortkey = "mergedLast30DPS"; break;
+			case "Last60DPS" : this.sortkey = "mergedLast60DPS"; break;
+			case "Last180DPS" : this.sortkey = "mergedLast180DPS"; break;
+		}
+	}
+
+    for (var i in this.Combatant)
+    {
+        if (this.Combatant[i].isPet && this.summonerMerge) 
+        {
+            this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
+            this.Combatant[i].visible = false;
+        }
+	}
 
     var tmp = [];
     var r = 0;
@@ -904,15 +978,10 @@ Combatant.prototype.sort = function(vector)
         this.Combatant[tmp[i].val.name] = tmp[i].val;
     }
 
-    for (var i in this.Combatant)
-    {
-        this.Combatant[i].returnOrigin();
-        if (this.Combatant[i].isPet && this.summonerMerge) 
-        {
-            this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
-            this.Combatant[i].visible = false;
-            continue;
-        }
+	for (var i in this.Combatant)
+	{
+        if (!this.Combatant[i].visible) continue;
+
         this.Combatant[i].rank = r++;
         this.Combatant[i].maxdamage = this.maxdamage;
     }
@@ -1078,7 +1147,6 @@ function pFloat(num)
 {
     return parseFloat(num.nanFix().toFixed(underDot));
 }
-
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
