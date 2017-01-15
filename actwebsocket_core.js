@@ -480,7 +480,7 @@ function Combatant(e, sortkey, lang)
 	for(var p in this.persons)
 	{
 		if(!this.persons[p].isPet)
-			this.noPetPersons.push(this.persons[p].name);
+			this.noPetPersons = new staticPerson(this.persons[p].name);
 	}
 
 	for(var i in this.persons)
