@@ -770,13 +770,13 @@ Person.prototype.recalculate = function()
     var dur = this.DURATION;
     if (dur == 0) dur = 1;
 
-    this.dps = pFloat(this.damage / dur);
-    this.encdps = pFloat(this.damage / this.parent.DURATION);
-    this.hps = pFloat(this.healed / dur);
-    this.enchps = pFloat(this.healed / this.parent.DURATION);
+    this.dps = pFloat(this.mergedDamage / dur);
+    this.encdps = pFloat(this.mergedDamage / this.parent.DURATION);
+    this.hps = pFloat(this.mergedHealed / dur);
+    this.enchps = pFloat(this.mergedHealed / this.parent.DURATION);
 
-    this["DAMAGE-k"] = Math.floor(this.damage / 1000);
-    this["DAMAGE-m"] = Math.floor(this.damage / 1000000);
+    this["DAMAGE-k"] = Math.floor(this.mergedDamage / 1000);
+    this["DAMAGE-m"] = Math.floor(this.mergedDamage / 1000000);
 
     this.DPS = Math.floor(this.dps);
     this["DPS-k"] = Math.floor(this.dps / 1000);
@@ -785,13 +785,13 @@ Person.prototype.recalculate = function()
     this["ENCDPS-k"] = Math.floor(this.encdps / 1000);
     this["ENCHPS-k"] = Math.floor(this.enchps / 1000);
 
-    this["damage%"] = pFloat(this.damage / this.parent.Encounter.damage * 100);
-    this["healed%"] = pFloat(this.healed / this.parent.Encounter.healed * 100);
+    this["damage%"] = pFloat(this.mergedDamage / this.parent.Encounter.damage * 100);
+    this["healed%"] = pFloat(this.mergedHealed / this.parent.Encounter.healed * 100);
 
-    this["crithit%"] = pFloat(this.crithits / this.hits * 100);
-    this["critheal%"] = pFloat(this.critheals / this.heals * 100);
+    this["crithit%"] = pFloat(this.mergedCrithits / this.hits * 100);
+    this["critheal%"] = pFloat(this.mergedCritheals / this.heals * 100);
 
-    this.tohit = pFloat(this.hits / this.swings * 100);
+    this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
 };
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
