@@ -813,6 +813,32 @@ Person.prototype.getColor = function(r, g, b)
 
 Person.prototype.get = function(key)
 {
+	if (this.parent.summonerMerge)
+	{
+		switch (key)
+		{
+			case "damage" : key = "mergedDamage"; break;
+			case "hits" : key = "mergedHits"; break;
+			case "misses" : key = "mergedMisses"; break;
+			case "swings" : key = "mergedSwings"; break;
+			case "crithits" : key = "mergedCrithits"; break;
+			case "damagetaken" : key = "mergedDamagetaken"; break;
+			// heals
+			case "heals" : key = "mergedHeals"; break;
+			case "healed" : key = "mergedHealed"; break;
+			case "critheals" : key = "mergedCritheals"; break;
+			case "healstaken" : key = "mergedHealstaken"; break;
+			case "damageShield" : key = "mergedDamageShield"; break;
+			case "overHeal" : key = "mergedOverHeal"; break;
+			case "absorbHeal" : key = "mergedAbsorbHeal"; break;
+			// lastdps
+			case "Last10DPS" : key = "mergedLast10DPS"; break;
+			case "Last30DPS" : key = "mergedLast30DPS"; break;
+			case "Last60DPS" : key = "mergedLast60DPS"; break;
+			case "Last180DPS" : key = "mergedLast180DPS"; break;
+		}
+	}
+
 	return this[key];
 }
 
