@@ -1,6 +1,6 @@
 if (wsUri !== undefined)
 {
-    if (wsUri.indexOf("@HOST_PORT@") > -1)
+    if (wsUri.indexOf("@HOST_PORT@") > -1 && window.location.search.substring(1).length <= 0)
     {
         var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
         var match = wsUri.match(reg);
@@ -463,12 +463,16 @@ function onBroadcastMessage(e)
 {
     if(e.detail.msgtype == "CombatData")
     {
+        if (lastCombat != null)
+        {
+            if (lastCombat.Encounter.encdps != e.detail.msg.Encounter.encdps)
+                lastCombat = new Combatant({detail:e.detail.msg});
+        }
+        else
+        {
+            lastCombat = new Combatant({detail:e.detail.msg});
+        }
         document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: e.detail.msg }));
-
-        if (lastCombat != undefined)
-            if (e.detail.msg.Encounter.DPS == lastCombat.Encounter.DPS) return;
-
-        lastCombat = new Combatant(e.detail.msg);
     }
     else
     {
@@ -481,7 +485,7 @@ function onBroadcastMessage(e)
             
                 break;
             case "RemoveCombatant":
-                combatants[e.detail.msg.id] = null;
+            
                 break;
             case "AbilityUse":
             

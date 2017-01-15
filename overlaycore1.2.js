@@ -1,11 +1,8 @@
 if (wsUri !== undefined)
 {
-    if (wsUri.indexOf("@HOST_PORT@") > -1)
-    {
-        var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
-        var match = wsUri.match(reg);
-        wsUri = "ws://127.0.0.1:10501/"+match[1];
-    }
+    var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
+    var match = wsUri.match(reg);
+    var wsUri = "ws://127.0.0.1:10501/"+match[1];
 }
 
 class ActWebsocketInterface
