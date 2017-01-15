@@ -8,6 +8,11 @@ function connectWebSocket(uri)
 	{
 		if (evt.data == ".") 
 		{
+			if(!requestonce)
+			{
+				setTimeout(function(){requestonce=true; websocket.send("RequestLastCombat");}, 1000);
+			}
+			
 			websocket.send(".");
 		}
 		else 
@@ -416,6 +421,7 @@ Person.prototype.merge = function(p)
 	this.mergedLast10DPS += p.Last10DPS;
 	this.mergedLast30DPS += p.Last30DPS;
 	this.mergedLast60DPS += p.Last60DPS;
+	this.mergedLast180DPS += p.Last180DPS;
 	this.mergedDamagetaken += p.damagetaken;
 	this.mergedHealstaken += p.healstaken;
 	this.mergedOverHeal += p.overHeal;
@@ -428,6 +434,8 @@ var oStaticPersons = [];
 
 function staticPerson(e)
 {
+	var d = new Date();
+	this.createTime = d.getTime();
 	this.person = e;
 	this.last180ARR = [];
 	this.last180Copy = [];
@@ -442,18 +450,6 @@ function Combatant(e, sortkey, lang)
 	if(lang === null || lang === undefined) var sortkey = "ko";
 
 	this.staticPersons = [];
-
-	if(!e.isActive)
-	{
-		for(var i in oStaticPersons)
-			this.staticPersons.push(oStaticPersons[i]);
-
-		oStaticPersons = [];
-	}
-	else
-	{
-		this.staticPersons = oStaticPersons;
-	}
 
 	this.summonerMerge = true;
 	this.sortkey = sortkey;
@@ -471,10 +467,38 @@ function Combatant(e, sortkey, lang)
 	this.langpack = new Language(lang);
 
 	this.combatKey = this.encounter.title.concat(this.encounter.damage).concat(this.encounter.healed);
+
+	if(!e.detail.isActive)
+	{
+		for(var i in oStaticPersons)
+		{
+			this.staticPersons.push(oStaticPersons[i]);
+		}
+		oStaticPersons = [];
+	}
+
 	for(var p in e.detail.Combatant)
 	{
 		this.persons[p] = new Person(this, p);
-		this.staticPersons.push(this.persons[p]);
+		var findStaticPersons = false;
+		var find = null;
+
+		for(var i in oStaticPersons)
+		{
+			if(oStaticPersons[i].person.name == p)
+			{
+				findStaticPersons = true;
+				find = oStaticPersons[i];
+			} 
+		}
+
+		if(!findStaticPersons)
+		{
+			var static = new staticPerson(this.persons[p]);
+			oStaticPersons.push(static);
+		}
+		else
+			find.person = this.persons[p];
 	}
 
 	for(var p in this.persons)
@@ -570,12 +594,14 @@ Combatant.prototype.rerank = function(asc)
 			this.maxValue = parseInt(this.persons[p][this.activeSort()]);
 		}
 
-		this.maxdamage = this.maxValue;
-		this.persons[p].maxdamage = this.maxValue;
-
 		if(this.persons[p].isPet && this.persons[p].petOwner != "" && this.persons[p].petType != "Chocobo" && this.summonerMerge) continue;
 		this.persons[p].rank = i++;
 	}
+
+	this.maxdamage = this.maxValue;
+
+	for(var p in this.persons)
+		this.persons[p].maxdamage = this.maxValue;
 }
 
 // e 는 sort 할 key 값 입니다.
@@ -722,10 +748,12 @@ function domReady()
 	try { document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate); } catch (ex) { }
 	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
 	window.addEventListener('message', onMessage);
+
 }
+
 function onMessage(e) 
 {
-	var data = JSON.parse(e.data);
+	var data = JSON.parse(e.data.replace(/'/, "\\'"));
 	if(data["typeText"] !== undefined)
 	{
 		switch(data.typeText)
@@ -757,6 +785,7 @@ function onMessage(e)
 	}
 }
 
+var requestonce = false;
 var lastCombat = null;
 var sortKey = "encdps";
 var underDot = 1;

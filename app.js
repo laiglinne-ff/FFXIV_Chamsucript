@@ -505,34 +505,7 @@ Combatant.prototype.changeLang = function(lang)
 // string : CombatantObject.activeSort()
 Combatant.prototype.activeSort = function() 
 {
-	var sortkey = this.sortKey;
-
-	if (sortkey == "encdps") sortkey = "damage";
-	else if (sortkey == "enchps") sortkey = "healed";
-	
-	if (this.summonerMerge)
-	{
-		switch(sortkey)
-		{
-			case "damage" : sortkey = "mergedDamage"; break;
-			case "healed" : sortkey = "mergedHealed"; break;
-			case "hits" : sortkey = "mergedHits"; break;
-			case "misses" : sortkey = "mergedHits"; break;
-			case "swings" : sortkey = "mergedSwings"; break;
-			case "heals" : sortkey = "mergedHeals"; break;
-			case "crithits" : sortkey = "mergedCrithits"; break;
-			case "critheals" : sortkey = "mergedCritheals"; break;
-			case "Last10DPS" : sortkey = "mergedLast10DPS"; break;
-			case "Last30DPS" : sortkey = "mergedLast30DPS"; break;
-			case "Last60DPS" : sortkey = "mergedLast60DPS"; break;
-			case "damagetaken" : sortkey = "mergedDamagetaken"; break;
-			case "healstaken" : sortkey = "mergedHealstaken"; break;
-		}
-	}
-	else if (sortkey == "maxhit") sortkey = "maxHit";
-	else if (sortkey == "maxheal") sortkey = "maxHeal";
-
-	return sortkey;
+	return activeSort(this.sortkey, this.summonerMerge);
 }
 
 // 랭크를 재지정합니다. 소환수와 분리/합산 했을 때 재호출을 해야 작동하는 Skin 들이 있습니다.
@@ -571,12 +544,14 @@ Combatant.prototype.rerank = function(asc)
 			this.maxValue = parseInt(this.persons[p][this.activeSort()]);
 		}
 
-		this.maxdamage = this.maxValue;
-		this.persons[p].maxdamage = this.maxValue;
-
 		if(this.persons[p].isPet && this.persons[p].petOwner != "" && this.persons[p].petType != "Chocobo" && this.summonerMerge) continue;
 		this.persons[p].rank = i++;
 	}
+
+	this.maxdamage = this.maxValue;
+
+	for(var p in this.persons)
+		this.persons[p].maxdamage = this.maxValue;
 }
 
 // e 는 sort 할 key 값 입니다.
@@ -605,29 +580,52 @@ function activeSort(sortKey, summonerMerge)
 	var sortkey = sortKey;
 
 	if (sortkey == "encdps") sortkey = "damage";
-	else if (sortkey == "enchps") sortkey = "healed";
+	if (sortkey == "enchps") sortkey = "healed";
+	if (sortkey == "maxhit") sortkey = "maxHit";
+	if (sortkey == "maxheal") sortkey = "maxHeal";
 
-	if (summonerMerge)
+	switch(sortkey)
 	{
-		switch(sortkey)
-		{
-			case "damage" : sortkey = "mergedDamage"; break;
-			case "healed" : sortkey = "mergedHealed"; break;
-			case "hits" : sortkey = "mergedHits"; break;
-			case "misses" : sortkey = "mergedHits"; break;
-			case "swings" : sortkey = "mergedSwings"; break;
-			case "heals" : sortkey = "mergedHeals"; break;
-			case "crithits" : sortkey = "mergedCrithits"; break;
-			case "critheals" : sortkey = "mergedCritheals"; break;
-			case "Last10DPS" : sortkey = "mergedLast10DPS"; break;
-			case "Last30DPS" : sortkey = "mergedLast30DPS"; break;
-			case "Last60DPS" : sortkey = "mergedLast60DPS"; break;
-			case "damagetaken" : sortkey = "mergedDamagetaken"; break;
-			case "healstaken" : sortkey = "mergedHealstaken"; break;
-		}
+		case "damage" : 
+			sortkey = "mergedDamage"; break;
+		case "healed" : 
+			sortkey = "mergedHealed"; break;
+		case "hits" : 
+			sortkey = "mergedHits"; break;
+		case "misses" : 
+			sortkey = "mergedHits"; break;
+		case "swings" : 
+			sortkey = "mergedSwings"; break;
+		case "heals" : 
+			sortkey = "mergedHeals"; break;
+		case "crithits" : 
+			sortkey = "mergedCrithits"; break;
+		case "critheals" : 
+			sortkey = "mergedCritheals"; break;
+		case "damagetaken" : 
+			sortkey = "mergedDamagetaken"; break;
+		case "healstaken" : 
+			sortkey = "mergedHealstaken"; break;
+		case "Last10DPS" : 
+			sortkey = "mergedLast10DPS"; break;
+		case "Last30DPS" : 
+			sortkey = "mergedLast30DPS"; break;
+		case "Last60DPS" : 
+			sortkey = "mergedLast60DPS"; break;
+		case "Last180DPS" : 
+			sortkey = "mergedLast180DPS"; break;
+		case "damage%":
+			sortkey = "dmgPct"; break;
+		case "crithit%":
+			sortkey = "crithitPct"; break;
+		case "critheal%":
+			sortkey = "crithealPct"; break;
+		case "healed%":
+			sortkey = "healedPct"; break;
+		case "overHeal%":
+		case "overHealPct":
+			sortkey = "OverHealPct"; break;
 	}
-	else if (sortkey == "maxhit") sortkey = "maxHit";
-	else if (sortkey == "maxheal") sortkey = "maxHeal";
 
 	return sortkey;
 }
