@@ -1024,6 +1024,30 @@ Combatant.prototype.changeLang = function(lang)
 	document.dispatchEvent(new CustomEvent('onLanguageChange', {detail:{language:lang, combatant:this}}));
 };
 
+Combatant.prototype.AttachPets = function()
+{
+	this.summonerMerge = true;
+
+	for(var i in this.Combatant)
+	{
+		this.Combatant[i].returnOrigin();
+		this.Combatant[i].recalculate();
+		this.Combatant[i].parent = this;
+	}
+}
+
+Combatant.prototype.DetachPets = function()
+{
+	this.summonerMerge = false;
+
+	for(var i in this.Combatant)
+	{
+		this.Combatant[i].returnOrigin();
+		this.Combatant[i].recalculate();
+		this.Combatant[i].parent = this;
+	}
+}
+
 // old version function
 Combatant.prototype.sortkeyChange = function(key)
 {
