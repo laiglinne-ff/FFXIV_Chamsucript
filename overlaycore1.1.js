@@ -748,6 +748,7 @@ Person.prototype.returnOrigin = function()
 
 Person.prototype.merge = function(person)
 {
+	this.returnOrigin();
 	this.pets[person.name] = person;
 
 	for(var k in this.pets)
