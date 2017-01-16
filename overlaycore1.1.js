@@ -749,9 +749,9 @@ Person.prototype.merge = function(person)
     for(var i in this.original)
     {
         if (i.indexOf("Last") > -1)
-            this["merged"+i] = this[i] + person.original[i];
+            this["merged"+i] += person.original[i];
         else
-            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)] + person.original[i];
+            this["merged"+i] += person.original[i];
     }
 
 	Debug.log("merge "+this.name+" << "+person.name);
