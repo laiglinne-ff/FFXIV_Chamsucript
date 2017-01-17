@@ -272,114 +272,6 @@ Number.prototype.numFormat = new function()
     }
 };
 
-// language 객체 입니다.
-function Language(l)
-{
-	if(l == undefined) var l = "ko";
-	this.lang = l;
-	this.jp = {
-		"PLD":"ナイト",
-		"GLD":"剣術士",
-		"WAR":"戦",
-		"MRD":"斧術士",
-		"DRK":"暗",
-		"MNK":"モンク",
-		"PGL":"格闘士",
-		"DRG":"竜",
-		"LNC":"槍術士",
-		"NIN":"忍",
-		"ROG":"双剣士",
-		"BRD":"吟",
-		"ARC":"弓術士",
-		"MCH":"機",
-		"SMN":"召",
-		"THM":"呪術士",
-		"BLM":"黒",
-		"WHM":"白",
-		"CNJ":"幻術士",
-		"SCH":"学",
-		"ACN":"巴術士",
-		"AST":"占",
-		"LMB":"リミット",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.en = {
-		"PLD":"PLD",
-		"GLD":"GLD",
-		"WAR":"WAR",
-		"MRD":"MRD",
-		"DRK":"DRK",
-		"MNK":"MNK",
-		"PGL":"PGL",
-		"DRG":"DRG",
-		"LNC":"LNC",
-		"NIN":"NIN",
-		"ROG":"ROG",
-		"BRD":"BRD",
-		"ARC":"ARC",
-		"MCH":"MCH",
-		"SMN":"SMN",
-		"THM":"THM",
-		"BLM":"BLM",
-		"WHM":"WHM",
-		"CNJ":"CNJ",
-		"SCH":"SCH",
-		"ACN":"ACN",
-		"AST":"AST",
-		"LMB":"LMB",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.ko = {
-		"PLD":"나이트",
-		"GLD":"검술사",
-		"WAR":"전사",
-		"MRD":"도끼술사",
-		"DRK":"암흑기사",
-		"MNK":"몽크",
-		"PGL":"격투사",
-		"DRG":"류상",
-		"LNC":"창술사",
-		"NIN":"닌자",
-		"ROG":"쌍검사",
-		"BRD":"음유시인",
-		"ARC":"궁술사",
-		"MCH":"기공사",
-		"SMN":"소환사",
-		"THM":"주술사",
-		"BLM":"흑마도사",
-		"WHM":"백마도사",
-		"CNJ":"환술사",
-		"SCH":"학자",
-		"ACN":"비술사",
-		"AST":"점성술사",
-		"LMB":"리미트",
-		"FAIRY":"요정",
-		"AUTOTURRET":"포탑",
-		"EGI":"에기",
-		"CHOCOBO":"초코보",
-	};
-}
-
-// 해당하는 언어의 값을 가져옵니다.
-// string : LanguageObject.get(string v)
-Language.prototype.get = function(v)
-{
-	try
-	{
-		return this[this.lang][v];
-	}
-	catch(ex)
-	{
-		return v;
-	}
-};
-
 // 이벤트 리스너를 자동으로 추가하도록 지정합니다.
 // 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
 if (document.addEventListener) 
@@ -472,30 +364,31 @@ function onRecvMessage(e)
 
 }
 
+/* 메세지 처리부 여기 있음 맨날 못찾음 눈깔 ㅄ색기양 스크롤 한참 굴리지 마라 */
 function onBroadcastMessage(e)
 {
     if(e.detail.msgtype == "CombatData")
     {
-        if (lastCombat != null)
-        {
-            if (lastCombat.Encounter.encdps != e.detail.msg.Encounter.encdps)
-                lastCombat = new Combatant({detail:e.detail.msg});
-        }
-        else
-        {
-            lastCombat = new Combatant({detail:e.detail.msg});
-        }
-        document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: e.detail.msg }));
+		lastCombatRaw = e.detail.msg;
+		lastCombat = new Combatant({detail:lastCombatRaw});
+
+		if (lastCombat != null && myName != "" && myName != undefined && myName != null)
+		{
+			lastCombat.Combatant["YOU"].name = myName;
+			lastCombat.Combatant["YOU"].displayName = myName;
+		}
+
+        document.dispatchEvent(new CustomEvent('onOverlayDataUpdate',{detail:lastCombatRaw}));
     }
     else
     {
         switch(e.detail.msgtype)
         {
             case "SendCharName":
-                document.dispatchEvent(new CustomEvent("onCharacterNameRecive", { detail: e.detail.msg } ));
+                document.dispatchEvent(new CustomEvent("onCharacterNameRecive",{detail:e.detail.msg}));
 				myName = e.detail.msg.charName;
 
-				if (lastCombat != null)
+				if (lastCombat != null && lastCombatRaw != null)
 				{
 					lastCombat.Combatant["YOU"].displayName = myName;
 				}
@@ -1082,6 +975,114 @@ Combatant.prototype.resort = function(key, vector)
     this.sort(vector);
 };
 
+// language 객체 입니다.
+function Language(l)
+{
+	if(l == undefined) var l = "ko";
+	this.lang = l;
+	this.jp = {
+		"PLD":"ナイト",
+		"GLD":"剣術士",
+		"WAR":"戦",
+		"MRD":"斧術士",
+		"DRK":"暗",
+		"MNK":"モンク",
+		"PGL":"格闘士",
+		"DRG":"竜",
+		"LNC":"槍術士",
+		"NIN":"忍",
+		"ROG":"双剣士",
+		"BRD":"吟",
+		"ARC":"弓術士",
+		"MCH":"機",
+		"SMN":"召",
+		"THM":"呪術士",
+		"BLM":"黒",
+		"WHM":"白",
+		"CNJ":"幻術士",
+		"SCH":"学",
+		"ACN":"巴術士",
+		"AST":"占",
+		"LMB":"リミット",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
+	this.en = {
+		"PLD":"PLD",
+		"GLD":"GLD",
+		"WAR":"WAR",
+		"MRD":"MRD",
+		"DRK":"DRK",
+		"MNK":"MNK",
+		"PGL":"PGL",
+		"DRG":"DRG",
+		"LNC":"LNC",
+		"NIN":"NIN",
+		"ROG":"ROG",
+		"BRD":"BRD",
+		"ARC":"ARC",
+		"MCH":"MCH",
+		"SMN":"SMN",
+		"THM":"THM",
+		"BLM":"BLM",
+		"WHM":"WHM",
+		"CNJ":"CNJ",
+		"SCH":"SCH",
+		"ACN":"ACN",
+		"AST":"AST",
+		"LMB":"LMB",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
+	this.ko = {
+		"PLD":"나이트",
+		"GLD":"검술사",
+		"WAR":"전사",
+		"MRD":"도끼술사",
+		"DRK":"암흑기사",
+		"MNK":"몽크",
+		"PGL":"격투사",
+		"DRG":"류상",
+		"LNC":"창술사",
+		"NIN":"닌자",
+		"ROG":"쌍검사",
+		"BRD":"음유시인",
+		"ARC":"궁술사",
+		"MCH":"기공사",
+		"SMN":"소환사",
+		"THM":"주술사",
+		"BLM":"흑마도사",
+		"WHM":"백마도사",
+		"CNJ":"환술사",
+		"SCH":"학자",
+		"ACN":"비술사",
+		"AST":"점성술사",
+		"LMB":"리미트",
+		"FAIRY":"요정",
+		"AUTOTURRET":"포탑",
+		"EGI":"에기",
+		"CHOCOBO":"초코보",
+	};
+}
+
+// 해당하는 언어의 값을 가져옵니다.
+// string : LanguageObject.get(string v)
+Language.prototype.get = function(v)
+{
+	try
+	{
+		return this[this.lang][v];
+	}
+	catch(ex)
+	{
+		return v;
+	}
+};
+
 var oStaticPersons = [];
 
 function activeSort(key, merge)
@@ -1228,6 +1229,7 @@ var jobColors = {
 	"LMB":[255, 204, 0]
 };
 
+var lastCombatRaw = null;
 var lastCombat = null;
 var maxhp = 100;
 var myID = 0;
