@@ -883,6 +883,10 @@ Combatant.prototype.sort = function(vector)
             this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
             this.Combatant[i].visible = false;
         }
+		else
+		{
+            this.Combatant[i].visible = true;
+		}
 	}
 
     var tmp = [];
