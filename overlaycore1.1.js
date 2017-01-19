@@ -1,13 +1,3 @@
-if (wsUri !== undefined)
-{
-    if (wsUri.indexOf("@HOST_PORT@") > -1 && window.location.search.substring(1).length <= 0)
-    {
-        var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
-        var match = wsUri.match(reg);
-        wsUri = "ws://127.0.0.1:10501/"+match[1];
-    }
-}
-
 var Debug = new dbg(true);
 
 function dbg(v)
@@ -488,19 +478,23 @@ function Person(e, p)
     this.rank = 0;
     this.maxdamage = 0;
 	this.displayName = this.name;
+	this.isLower = false;
 
     // Give Job
-    switch(this.Job)
+	var vjob = this.Job;
+	
+	if (vjob != "") vjob = this.Job.toUpperCase();
+    switch(vjob)
     {
-        case "GLD" : this.Class = "PLD"; break;
-        case "MRD" : this.Class = "WAR"; break;
-        case "PUG" : this.Class = "MNK"; break;
-        case "LNC" : this.Class = "DRG"; break;
-        case "ROG" : this.Class = "NIN"; break;
-        case "ARC" : this.Class = "BRD"; break;
-        case "THM" : this.Class = "BLM"; break;
-        case "ACN" : this.Class = "SMN"; break;
-        case "CNJ" : this.Class = "WHM"; break;
+        case "GLD" : this.Class = "PLD"; this.isLower = true; break;
+        case "MRD" : this.Class = "WAR"; this.isLower = true; break;
+        case "PUG" : this.Class = "MNK"; this.isLower = true; break;
+        case "LNC" : this.Class = "DRG"; this.isLower = true; break;
+        case "ROG" : this.Class = "NIN"; this.isLower = true; break;
+        case "ARC" : this.Class = "BRD"; this.isLower = true; break;
+        case "THM" : this.Class = "BLM"; this.isLower = true; break;
+        case "ACN" : this.Class = "SMN"; this.isLower = true; break;
+        case "CNJ" : this.Class = "WHM"; this.isLower = true; break;
     }
 
 	if(this.Class != "")
