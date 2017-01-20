@@ -1,5 +1,10 @@
 var Debug = new dbg(true);
 
+if (document.location.href.indexOf("file")>-1)
+{
+	wsUri = "ws://127.0.0.1:10501/MiniParse";
+}
+
 function dbg(v)
 {
 	this.debug = v;
