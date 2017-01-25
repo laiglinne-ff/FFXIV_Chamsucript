@@ -317,8 +317,15 @@ window.addEventListener('message', function (e)
 function domReady() 
 {
     /* ACTWebSocket 적용 */
-    webs = new WebSocketImpl(wsUri);
-    webs.connect();
+	try
+	{
+		webs = new WebSocketImpl(wsUri);
+		webs.connect();
+	}
+	catch(ex)
+	{
+
+	}
 
 	// Logline
 	try { document.addEventListener('beforeLogLineRead', beforeLogLineRead); } catch (ex) { }
@@ -382,11 +389,6 @@ function onBroadcastMessage(e)
             case "SendCharName":
                 document.dispatchEvent(new CustomEvent("onCharacterNameRecive",{detail:e.detail.msg}));
 				myName = e.detail.msg.charName;
-
-				if (lastCombat != null && lastCombatRaw != null)
-				{
-					lastCombat.Combatant["YOU"].displayName = myName;
-				}
                 break;
             case "AddCombatant":
             
@@ -1209,6 +1211,29 @@ function pFloat(num)
 {
     return parseFloat(num.nanFix().toFixed(underDot));
 }
+
+function loadSetting(key)
+{
+	var json = "";
+
+	try
+	{	
+		json = localStorage.getItem(key);
+		json = JSON.parse(json);
+	}
+	catch(ex)
+	{
+		return json;
+	}
+
+	return json;
+}
+
+function saveSetting(key, val)
+{
+	localStorage.setItem(key, JSON.stringify(val));
+}
+
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
