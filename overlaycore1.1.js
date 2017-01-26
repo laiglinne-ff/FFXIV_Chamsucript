@@ -372,7 +372,7 @@ function onBroadcastMessage(e)
     if(e.detail.msgtype == "CombatData")
     {
 		lastCombatRaw = e.detail.msg;
-		lastCombat = new Combatant({detail:lastCombatRaw});
+		lastCombat = new Combatant({detail:lastCombatRaw}, sortKey);
 
 		if (lastCombat != null && myName != "" && myName != undefined && myName != null)
 		{
