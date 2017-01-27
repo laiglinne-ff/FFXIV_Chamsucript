@@ -376,7 +376,6 @@ function onBroadcastMessage(e)
 
 		if (lastCombat != null && myName != "" && myName != undefined && myName != null)
 		{
-			lastCombat.Combatant["YOU"].name = myName;
 			lastCombat.Combatant["YOU"].displayName = myName;
 		}
 
