@@ -478,6 +478,7 @@ function Person(e, p)
     if (this.Job != "")
         this.Class = this.Job.toUpperCase();
 
+	this.petOwner = "";
 	this.petType = "Chocobo";
     this.isPet = false;
     this.role = "DPS";
@@ -494,7 +495,7 @@ function Person(e, p)
     {
         case "GLD" : this.Class = "PLD"; this.isLower = true; break;
         case "MRD" : this.Class = "WAR"; this.isLower = true; break;
-        case "PUG" : this.Class = "MNK"; this.isLower = true; break;
+        case "PGL" : this.Class = "MNK"; this.isLower = true; break;
         case "LNC" : this.Class = "DRG"; this.isLower = true; break;
         case "ROG" : this.Class = "NIN"; this.isLower = true; break;
         case "ARC" : this.Class = "BRD"; this.isLower = true; break;
@@ -557,15 +558,28 @@ function Person(e, p)
 		}
 	}
 	
-	if(this.isPet)
+	try
 	{
 		var regex = /(?:.*?)\((.*?)\)/im;
 		var matches = this.name.match(regex);
 		if(regex.test(this.name)) // do not use Array.length 
 		{
 			this.petOwner = matches[1];
+			this.isPet = true;
 		}
-    }
+	}
+	catch(ex)
+	{
+
+	}
+
+	if (this.petOwner != "" && this.Class == "")
+	{
+		this.isPet = false;
+		this.Job = "CBO";
+		this.Class = "CBO";
+		this.petType = "Chocobo_Persons";
+	}
 
     /* DPS RECALCULATE */
     if(this.overHeal != undefined)
