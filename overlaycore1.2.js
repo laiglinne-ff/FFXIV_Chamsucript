@@ -1,14 +1,54 @@
-if (wsUri !== undefined)
+var webs = null;
+var QueryString = function () 
 {
-    var reg = /^ws:\/\/@HOST_PORT@\/(.+)$/im;
-    var match = wsUri.match(reg);
-    var wsUri = "ws://127.0.0.1:10501/"+match[1];
+	// This function is anonymous, is executed immediately and 
+	// the return value is assigned to QueryString!
+	var query_string = {};
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) 
+	{
+		var pair = vars[i].split("=");
+			// If first entry with this name
+		if (typeof query_string[pair[0]] === "undefined") 
+		{
+			query_string[pair[0]] = decodeURIComponent(pair[1]);
+			// If second entry with this name
+		} 
+		else if (typeof query_string[pair[0]] === "string") 
+		{
+			var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+			query_string[pair[0]] = arr;
+			// If third or later entry with this name
+		} 
+		else 
+		{
+			query_string[pair[0]].push(decodeURIComponent(pair[1]));
+		}
+	} 
+	return query_string;
+}();
+
+// check host (islocal)
+if(wsUri.indexOf("@HOST_PORT@") > -1)
+{
+	wsUri = wsUri.replace(/ws:\/\/@HOST_PORT@/im, QueryString["HOST_PORT"]);
 }
+
+function dbg(v)
+{
+	this.debug = v;
+
+	this.log = function(object)
+	{
+		if (this.debug)
+			console.log(object);
+	}
+};
 
 class ActWebsocketInterface
 {
-	constructor(uri, path = "MiniParse") 
-    {
+	constructor(uri, path = "MiniParse") {
 		// url check
 		var querySet = this.getQuerySet();
 		if(querySet["HOST_PORT"] != undefined)
@@ -20,17 +60,12 @@ class ActWebsocketInterface
 		this.activate = false;
 		
 		var This = this;
-
-		document.addEventListener('onBroadcastMessage', function(evt) 
-        {
+		document.addEventListener('onBroadcastMessage', function(evt) {
 			This.onBroadcastMessage(evt);
 		});
-
-		document.addEventListener('onRecvMessage', function(evt) 
-        {
+		document.addEventListener('onRecvMessage', function(evt) {
 			This.onRecvMessage(evt);
 		});
-
 		window.addEventListener('message', function (e) 
 		{
 			if (e.data.type === 'onBroadcastMessage') 
@@ -43,9 +78,7 @@ class ActWebsocketInterface
 			}
 		});
 	}
-
-	connect() 
-    {
+	connect() {
 		if(this.websocket != undefined && this.websocket != null)
 			this.close();
 		this.activate = true;
@@ -56,18 +89,14 @@ class ActWebsocketInterface
 		this.websocket.onclose = function(evt) {This.onclose(evt);};
 		this.websocket.onerror = function(evt) {This.onerror(evt);};
 	}
-
-	close() 
-    {
+	close() {
 		this.activate = false;
 		if(this.websocket != null && this.websocket != undefined)
 		{
 			this.websocket.close();
 		}
 	}
-
-	onopen(evt) 
-    {
+	onopen(evt) {
 		// get id from useragent
 		if(this.id != null && this.id != undefined)
 		{
@@ -75,28 +104,32 @@ class ActWebsocketInterface
 		}
 		else
 		{
-			var r = new RegExp('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}');
-			var id = r.exec(navigator.userAgent);
-			if(id != null && id.length == 1)
+			if(overlayWindowId != undefined)
 			{
-				this.set_id(id[0]);
-				self.id = id;
+				this.set_id(overlayWindowId);
+				self.id = overlayWindowId;
+			}
+			else
+			{
+				var r = new RegExp('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}');
+				var id = r.exec(navigator.userAgent);
+				if(id != null && id.length == 1)
+				{
+					this.set_id(id[0]);
+					self.id = id;
+				}
 			}
 		}
 	}
-
-	onclose(evt) 
-    {
+	onclose(evt) {
 		this.websocket = null;
 		if(this.activate)
 		{
 			var This = this;
-			setTimeout(function() {This.connect();}, 2000);
+			setTimeout(function() {This.connect();}, 5000);
 		}
 	}
-
-	onmessage(evt) 
-    {
+	onmessage(evt) {
 		if (evt.data == ".")
 		{
 			// ping pong
@@ -104,8 +137,7 @@ class ActWebsocketInterface
 		}
 		else
 		{
-			try
-            {
+			try{
 				var obj = JSON.parse(evt.data);
 				var type = obj["type"];
 				if(type == "broadcast")
@@ -132,36 +164,29 @@ class ActWebsocketInterface
 			}
 		}
 	}
-
-	onerror(evt) 
-    {
+	onerror(evt) {
 		this.websocket.close();
 		console.log(evt);
 	}
-
-	getQuerySet() 
-    {
+	getQuerySet() {
 		var querySet = {};
 		// get query 
 		var query = window.location.search.substring(1);
 		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++) 
-        {
-			try
-            {
+		for (var i = 0; i < vars.length; i++) {
+			try{
 				var pair = vars[i].split('=');
 				querieSet[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
 			}
 			catch(e)
 			{
-
 			}
 		}
 		return querySet;
 	}
 	
-	broadcast(type, msg)
-    {
+	
+	broadcast(type, msg){
 		var obj = {};
 		obj["type"] = "broadcast";
 		obj["msgtype"] = type;
@@ -169,8 +194,7 @@ class ActWebsocketInterface
 		this.websocket.send(JSON.stringify(obj));
 	}
 
-	send(to, type, msg)
-    {
+	send(to, type, msg){
 		var obj = {};
 		obj["type"] = "send";
 		obj["to"] = to;
@@ -179,8 +203,15 @@ class ActWebsocketInterface
 		this.websocket.send(JSON.stringify(obj));
 	}
 	
-	set_id(id)
-    {
+	overlayAPI(type, msg){
+		var obj = {};
+		obj["type"] = "overlayAPI";
+		obj["msgtype"] = type;
+		obj["msg"] = msg;
+		this.websocket.send(JSON.stringify(obj));
+	}
+	
+	set_id(id){
 		var obj = {};
 		obj["type"] = "set_id";
 		obj["id"] = id;
@@ -189,13 +220,31 @@ class ActWebsocketInterface
 
 	onRecvMessage(e)
 	{
-
 	}
 	
 	onBroadcastMessage(e)
 	{
-
 	}
+};
+
+// ACTWebSocket 적용
+class WebSocketImpl extends ActWebsocketInterface
+{
+    constructor(uri, path = "MiniParse") 
+    {
+        super(uri, path);
+    }
+    //send(to, type, msg)
+    //broadcast(type, msg)
+    onRecvMessage(e)
+    {
+        onRecvMessage(e);
+    }
+
+    onBroadcastMessage(e)
+    {
+        onBroadcastMessage(e);
+    }
 };
 
 // string : StringObject.format(ObjectArray a)
@@ -256,114 +305,6 @@ Number.prototype.numFormat = new function()
     }
 };
 
-// language 객체 입니다.
-function Language(l)
-{
-	if(l == undefined) var l = "ko";
-	this.lang = l;
-	this.jp = {
-		"PLD":"ナイト",
-		"GLD":"剣術士",
-		"WAR":"戦",
-		"MRD":"斧術士",
-		"DRK":"暗",
-		"MNK":"モンク",
-		"PGL":"格闘士",
-		"DRG":"竜",
-		"LNC":"槍術士",
-		"NIN":"忍",
-		"ROG":"双剣士",
-		"BRD":"吟",
-		"ARC":"弓術士",
-		"MCH":"機",
-		"SMN":"召",
-		"THM":"呪術士",
-		"BLM":"黒",
-		"WHM":"白",
-		"CNJ":"幻術士",
-		"SCH":"学",
-		"ACN":"巴術士",
-		"AST":"占",
-		"LMB":"リミット",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.en = {
-		"PLD":"PLD",
-		"GLD":"GLD",
-		"WAR":"WAR",
-		"MRD":"MRD",
-		"DRK":"DRK",
-		"MNK":"MNK",
-		"PGL":"PGL",
-		"DRG":"DRG",
-		"LNC":"LNC",
-		"NIN":"NIN",
-		"ROG":"ROG",
-		"BRD":"BRD",
-		"ARC":"ARC",
-		"MCH":"MCH",
-		"SMN":"SMN",
-		"THM":"THM",
-		"BLM":"BLM",
-		"WHM":"WHM",
-		"CNJ":"CNJ",
-		"SCH":"SCH",
-		"ACN":"ACN",
-		"AST":"AST",
-		"LMB":"LMB",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.ko = {
-		"PLD":"나이트",
-		"GLD":"검술사",
-		"WAR":"전사",
-		"MRD":"도끼술사",
-		"DRK":"암흑기사",
-		"MNK":"몽크",
-		"PGL":"격투사",
-		"DRG":"류상",
-		"LNC":"창술사",
-		"NIN":"닌자",
-		"ROG":"쌍검사",
-		"BRD":"음유시인",
-		"ARC":"궁술사",
-		"MCH":"기공사",
-		"SMN":"소환사",
-		"THM":"주술사",
-		"BLM":"흑마도사",
-		"WHM":"백마도사",
-		"CNJ":"환술사",
-		"SCH":"학자",
-		"ACN":"비술사",
-		"AST":"점성술사",
-		"LMB":"리미트",
-		"FAIRY":"요정",
-		"AUTOTURRET":"포탑",
-		"EGI":"에기",
-		"CHOCOBO":"초코보",
-	};
-}
-
-// 해당하는 언어의 값을 가져옵니다.
-// string : LanguageObject.get(string v)
-Language.prototype.get = function(v)
-{
-	try
-	{
-		return this[this.lang][v];
-	}
-	catch(ex)
-	{
-		return v;
-	}
-};
-
 // 이벤트 리스너를 자동으로 추가하도록 지정합니다.
 // 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
 if (document.addEventListener) 
@@ -414,74 +355,78 @@ window.addEventListener('message', function (e)
 function domReady() 
 {
     /* ACTWebSocket 적용 */
-    webs = new WebSocketImpl(wsUri);
-    webs.connect();
+	try
+	{
+		webs = new WebSocketImpl(wsUri);
+		webs.connect();
+		console.log("Connecting...");
+	}
+	catch(ex)
+	{
+		console.log("[ERROR] : WebSocket has Error [] "+ex);
+	}
 
 	// Logline
 	try { document.addEventListener('beforeLogLineRead', beforeLogLineRead); } catch (ex) { }
 	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
 
 	// On
-	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayUpdate is not defined."); }
+	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayDataUpdate is not defined."); }
 	try { document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate); } catch (ex) { }
 
     // ReadyEvent
     try { onDocumentLoad(); } catch(ex) { }
 }
 
-// ACTWebSocket 적용
-class WebSocketImpl extends ActWebsocketInterface
-{
-    constructor(uri, path = "MiniParse") 
-    {
-        super(uri, path);
-    }
-    //send(to, type, msg)
-    //broadcast(type, msg)
-    onRecvMessage(e)
-    {
-        onRecvMessage(e);
-    }
-
-    onBroadcastMessage(e)
-    {
-        onBroadcastMessage(e);
-    }
-};
-
-var webs = null;
-
 function onRecvMessage(e)
 {
-
+    if(e.detail.msgtype == "Chat")
+    {
+        document.dispatchEvent(new CustomEvent("onChatting",{detail:e.detail.msg}));
+    }
+    else
+    {
+        console.log(e.detail.msgtype+":"+e.detail.msg);
+    }
 }
 
+/* 메세지 처리부 여기 있음 맨날 못찾음 눈깔 ㅄ색기양 스크롤 한참 굴리지 마라 */
 function onBroadcastMessage(e)
 {
     if(e.detail.msgtype == "CombatData")
     {
-        document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: e.detail.msg }));
+		lastCombatRaw = e.detail.msg;
+		lastCombat = new Combatant({detail:lastCombatRaw}, sortKey);
 
-        if (lastCombat != undefined)
-            if (e.detail.msg.Encounter.DPS == lastCombat.Encounter.DPS) return;
-            
-        lastCombat = new Combatant(e.detail.msg);
+		if (lastCombat != null && myName != "" && myName != undefined && myName != null)
+		{
+			lastCombat.Combatant["YOU"].displayName = myName;
+		}
+
+        document.dispatchEvent(new CustomEvent('onOverlayDataUpdate',{detail:lastCombatRaw}));
     }
     else
     {
         switch(e.detail.msgtype)
         {
             case "SendCharName":
-                document.dispatchEvent(new CustomEvent("onCharacterNameRecive", { detail: e.detail.msg } ));
+                document.dispatchEvent(new CustomEvent("onCharacterNameRecive",{detail:e.detail.msg}));
+				myName = e.detail.msg.charName;
                 break;
             case "AddCombatant":
             
                 break;
             case "RemoveCombatant":
-                combatants[e.detail.msg.id] = null;
+            
                 break;
             case "AbilityUse":
             
+                break;
+            case "Chat":
+                document.dispatchEvent(new CustomEvent("onChatting",{detail:e.detail.msg}));
+                break;
+            default:
+                console.log(e.detail.msgtype+":"+e.detail.msg);
                 break;
         }
     }
@@ -568,19 +513,24 @@ function Person(e, p)
     this.role = "DPS";
     this.rank = 0;
     this.maxdamage = 0;
+	this.displayName = this.name;
+	this.isLower = false;
 
     // Give Job
-    switch(this.Job)
+	var vjob = this.Job;
+	
+	if (vjob != "") vjob = this.Job.toUpperCase();
+    switch(vjob)
     {
-        case "GLD" : this.Class = "PLD"; break;
-        case "MRD" : this.Class = "WAR"; break;
-        case "PUG" : this.Class = "MNK"; break;
-        case "LNC" : this.Class = "DRG"; break;
-        case "ROG" : this.Class = "NIN"; break;
-        case "ARC" : this.Class = "BRD"; break;
-        case "THM" : this.Class = "BLM"; break;
-        case "ACN" : this.Class = "SMN"; break;
-        case "CNJ" : this.Class = "WHM"; break;
+        case "GLD" : this.Class = "PLD"; this.isLower = true; break;
+        case "MRD" : this.Class = "WAR"; this.isLower = true; break;
+        case "PUG" : this.Class = "MNK"; this.isLower = true; break;
+        case "LNC" : this.Class = "DRG"; this.isLower = true; break;
+        case "ROG" : this.Class = "NIN"; this.isLower = true; break;
+        case "ARC" : this.Class = "BRD"; this.isLower = true; break;
+        case "THM" : this.Class = "BLM"; this.isLower = true; break;
+        case "ACN" : this.Class = "SMN"; this.isLower = true; break;
+        case "CNJ" : this.Class = "WHM"; this.isLower = true; break;
     }
 
 	if(this.Class != "")
@@ -696,6 +646,16 @@ function Person(e, p)
     {
         this.petOwner = "YOU";
     }
+
+    for(var i in this.original)
+    {
+        if (i.indexOf("Last") > -1)
+            this["merged"+i] = this[i];
+        else
+            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
+    }
+
+	this.pets = {};
 }
 
 Person.prototype.returnOrigin = function()
@@ -707,19 +667,25 @@ Person.prototype.returnOrigin = function()
         else
             this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
     }
-
-    this.recalculate();
 };
 
 Person.prototype.merge = function(person)
 {
-    for(var i in this.original)
-    {
-        if (i.indexOf("Last") > -1)
-            this["merged"+i] = this[i] + person.original[i];
-        else
-            this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)] + person.original[i];
-    }
+	this.returnOrigin();
+	this.pets[person.name] = person;
+
+	for(var k in this.pets)
+	{
+		for(var i in this.original)
+		{
+			if (i.indexOf("Last") > -1)
+				this["merged"+i] += this.pets[k].original[i];
+			else
+				this["merged"+i] += this.pets[k].original[i];
+		}
+	}
+
+	Debug.log("merge "+this.name+" << "+person.name);
 
     this.recalculate();
 };
@@ -735,13 +701,13 @@ Person.prototype.recalculate = function()
     var dur = this.DURATION;
     if (dur == 0) dur = 1;
 
-    this.dps = pFloat(this.damage / dur);
-    this.encdps = pFloat(this.damage / this.parent.DURATION);
-    this.hps = pFloat(this.healed / dur);
-    this.enchps = pFloat(this.healed / this.parent.DURATION);
+    this.dps = pFloat(this.mergedDamage / dur);
+    this.encdps = pFloat(this.mergedDamage / this.parent.DURATION);
+    this.hps = pFloat(this.mergedHealed / dur);
+    this.enchps = pFloat(this.mergedHealed / this.parent.DURATION);
 
-    this["DAMAGE-k"] = Math.floor(this.damage / 1000);
-    this["DAMAGE-m"] = Math.floor(this.damage / 1000000);
+    this["DAMAGE-k"] = Math.floor(this.mergedDamage / 1000);
+    this["DAMAGE-m"] = Math.floor(this.mergedDamage / 1000000);
 
     this.DPS = Math.floor(this.dps);
     this["DPS-k"] = Math.floor(this.dps / 1000);
@@ -750,13 +716,13 @@ Person.prototype.recalculate = function()
     this["ENCDPS-k"] = Math.floor(this.encdps / 1000);
     this["ENCHPS-k"] = Math.floor(this.enchps / 1000);
 
-    this["damage%"] = pFloat(this.damage / this.parent.Encounter.damage * 100);
-    this["healed%"] = pFloat(this.healed / this.parent.Encounter.healed * 100);
+    this["damage%"] = pFloat(this.mergedDamage / this.parent.Encounter.damage * 100);
+    this["healed%"] = pFloat(this.mergedHealed / this.parent.Encounter.healed * 100);
 
-    this["crithit%"] = pFloat(this.crithits / this.hits * 100);
-    this["critheal%"] = pFloat(this.critheals / this.heals * 100);
+    this["crithit%"] = pFloat(this.mergedCrithits / this.hits * 100);
+    this["critheal%"] = pFloat(this.mergedCritheals / this.heals * 100);
 
-    this.tohit = pFloat(this.hits / this.swings * 100);
+    this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
 };
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
@@ -775,6 +741,37 @@ Person.prototype.getColor = function(r, g, b)
 		return {"R":240, "G":220, "B":110};
 	}
 };
+
+Person.prototype.get = function(key)
+{
+	if (this.parent.summonerMerge)
+	{
+		switch (key)
+		{
+			case "damage" : key = "mergedDamage"; break;
+			case "hits" : key = "mergedHits"; break;
+			case "misses" : key = "mergedMisses"; break;
+			case "swings" : key = "mergedSwings"; break;
+			case "crithits" : key = "mergedCrithits"; break;
+			case "damagetaken" : key = "mergedDamagetaken"; break;
+			// heals
+			case "heals" : key = "mergedHeals"; break;
+			case "healed" : key = "mergedHealed"; break;
+			case "critheals" : key = "mergedCritheals"; break;
+			case "healstaken" : key = "mergedHealstaken"; break;
+			case "damageShield" : key = "mergedDamageShield"; break;
+			case "overHeal" : key = "mergedOverHeal"; break;
+			case "absorbHeal" : key = "mergedAbsorbHeal"; break;
+			// lastdps
+			case "Last10DPS" : key = "mergedLast10DPS"; break;
+			case "Last30DPS" : key = "mergedLast30DPS"; break;
+			case "Last60DPS" : key = "mergedLast60DPS"; break;
+			case "Last180DPS" : key = "mergedLast180DPS"; break;
+		}
+	}
+
+	return this[key];
+}
 
 function Combatant(e, sortkey)
 {
@@ -865,10 +862,62 @@ Combatant.prototype.rerank = function(vector)
     this.sort(vector);
 };
 
+Combatant.prototype.indexOf = function(person)
+{
+	var v = -1;
+	for(var i in this.Combatant)
+	{
+		v++;
+		if ( i == person)
+			return v;
+	}
+
+	return v;
+};
+
 Combatant.prototype.sort = function(vector)
 {
     if (vector != undefined) 
         this.sortvector = vector;
+
+	if (this.summonerMerge)
+	{
+		switch (this.sortkey)
+		{
+			case "damage" : this.sortkey = "mergedDamage"; break;
+			case "hits" : this.sortkey = "mergedHits"; break;
+			case "misses" : this.sortkey = "mergedMisses"; break;
+			case "swings" : this.sortkey = "mergedSwings"; break;
+			case "crithits" : this.sortkey = "mergedCrithits"; break;
+			case "damagetaken" : this.sortkey = "mergedDamagetaken"; break;
+			// heals
+			case "heals" : this.sortkey = "mergedHeals"; break;
+			case "healed" : this.sortkey = "mergedHealed"; break;
+			case "critheals" : this.sortkey = "mergedCritheals"; break;
+			case "healstaken" : this.sortkey = "mergedHealstaken"; break;
+			case "damageShield" : this.sortkey = "mergedDamageShield"; break;
+			case "overHeal" : this.sortkey = "mergedOverHeal"; break;
+			case "absorbHeal" : this.sortkey = "mergedAbsorbHeal"; break;
+			// lastdps
+			case "Last10DPS" : this.sortkey = "mergedLast10DPS"; break;
+			case "Last30DPS" : this.sortkey = "mergedLast30DPS"; break;
+			case "Last60DPS" : this.sortkey = "mergedLast60DPS"; break;
+			case "Last180DPS" : this.sortkey = "mergedLast180DPS"; break;
+		}
+	}
+
+    for (var i in this.Combatant)
+    {
+        if (this.Combatant[i].isPet && this.summonerMerge) 
+        {
+            this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
+            this.Combatant[i].visible = false;
+        }
+		else
+		{
+            this.Combatant[i].visible = true;
+		}
+	}
 
     var tmp = [];
     var r = 0;
@@ -890,15 +939,10 @@ Combatant.prototype.sort = function(vector)
         this.Combatant[tmp[i].val.name] = tmp[i].val;
     }
 
-    for (var i in this.Combatant)
-    {
-        this.Combatant[i].returnOrigin();
-        if (this.Combatant[i].isPet && this.summonerMerge) 
-        {
-            this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
-            this.Combatant[i].visible = false;
-            continue;
-        }
+	for (var i in this.Combatant)
+	{
+        if (!this.Combatant[i].visible) continue;
+
         this.Combatant[i].rank = r++;
         this.Combatant[i].maxdamage = this.maxdamage;
     }
@@ -914,6 +958,30 @@ Combatant.prototype.changeLang = function(lang)
 	this.langpack = new Language(lang);
 	document.dispatchEvent(new CustomEvent('onLanguageChange', {detail:{language:lang, combatant:this}}));
 };
+
+Combatant.prototype.AttachPets = function()
+{
+	this.summonerMerge = true;
+
+	for(var i in this.Combatant)
+	{
+		this.Combatant[i].returnOrigin();
+		this.Combatant[i].recalculate();
+		this.Combatant[i].parent = this;
+	}
+}
+
+Combatant.prototype.DetachPets = function()
+{
+	this.summonerMerge = false;
+
+	for(var i in this.Combatant)
+	{
+		this.Combatant[i].returnOrigin();
+		this.Combatant[i].recalculate();
+		this.Combatant[i].parent = this;
+	}
+}
 
 // old version function
 Combatant.prototype.sortkeyChange = function(key)
@@ -939,6 +1007,114 @@ Combatant.prototype.resort = function(key, vector)
         vector = this.sortvector;
 
     this.sort(vector);
+};
+
+// language 객체 입니다.
+function Language(l)
+{
+	if(l == undefined) var l = "ko";
+	this.lang = l;
+	this.jp = {
+		"PLD":"ナイト",
+		"GLD":"剣術士",
+		"WAR":"戦",
+		"MRD":"斧術士",
+		"DRK":"暗",
+		"MNK":"モンク",
+		"PGL":"格闘士",
+		"DRG":"竜",
+		"LNC":"槍術士",
+		"NIN":"忍",
+		"ROG":"双剣士",
+		"BRD":"吟",
+		"ARC":"弓術士",
+		"MCH":"機",
+		"SMN":"召",
+		"THM":"呪術士",
+		"BLM":"黒",
+		"WHM":"白",
+		"CNJ":"幻術士",
+		"SCH":"学",
+		"ACN":"巴術士",
+		"AST":"占",
+		"LMB":"リミット",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
+	this.en = {
+		"PLD":"PLD",
+		"GLD":"GLD",
+		"WAR":"WAR",
+		"MRD":"MRD",
+		"DRK":"DRK",
+		"MNK":"MNK",
+		"PGL":"PGL",
+		"DRG":"DRG",
+		"LNC":"LNC",
+		"NIN":"NIN",
+		"ROG":"ROG",
+		"BRD":"BRD",
+		"ARC":"ARC",
+		"MCH":"MCH",
+		"SMN":"SMN",
+		"THM":"THM",
+		"BLM":"BLM",
+		"WHM":"WHM",
+		"CNJ":"CNJ",
+		"SCH":"SCH",
+		"ACN":"ACN",
+		"AST":"AST",
+		"LMB":"LMB",
+		"FAIRY":"FAIRY",
+		"AUTOTURRET":"AUTOTURRET",
+		"EGI":"EGI",
+		"CHOCOBO":"CHOCOBO",
+	};
+	this.ko = {
+		"PLD":"나이트",
+		"GLD":"검술사",
+		"WAR":"전사",
+		"MRD":"도끼술사",
+		"DRK":"암흑기사",
+		"MNK":"몽크",
+		"PGL":"격투사",
+		"DRG":"류상",
+		"LNC":"창술사",
+		"NIN":"닌자",
+		"ROG":"쌍검사",
+		"BRD":"음유시인",
+		"ARC":"궁술사",
+		"MCH":"기공사",
+		"SMN":"소환사",
+		"THM":"주술사",
+		"BLM":"흑마도사",
+		"WHM":"백마도사",
+		"CNJ":"환술사",
+		"SCH":"학자",
+		"ACN":"비술사",
+		"AST":"점성술사",
+		"LMB":"리미트",
+		"FAIRY":"요정",
+		"AUTOTURRET":"포탑",
+		"EGI":"에기",
+		"CHOCOBO":"초코보",
+	};
+}
+
+// 해당하는 언어의 값을 가져옵니다.
+// string : LanguageObject.get(string v)
+Language.prototype.get = function(v)
+{
+	try
+	{
+		return this[this.lang][v];
+	}
+	catch(ex)
+	{
+		return v;
+	}
 };
 
 var oStaticPersons = [];
@@ -1065,6 +1241,28 @@ function pFloat(num)
     return parseFloat(num.nanFix().toFixed(underDot));
 }
 
+function loadSetting(key)
+{
+	var json = "";
+
+	try
+	{	
+		json = localStorage.getItem(key);
+		json = JSON.parse(json);
+	}
+	catch(ex)
+	{
+		return json;
+	}
+
+	return json;
+}
+
+function saveSetting(key, val)
+{
+	localStorage.setItem(key, JSON.stringify(val));
+}
+
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
@@ -1088,6 +1286,7 @@ var jobColors = {
 	"LMB":[255, 204, 0]
 };
 
+var lastCombatRaw = null;
 var lastCombat = null;
 var maxhp = 100;
 var myID = 0;
