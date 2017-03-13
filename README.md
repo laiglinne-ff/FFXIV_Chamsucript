@@ -1,3 +1,3 @@
-# ffxiv_overlay_corejs
+# Chamsucript
 
 for laiglinne's overlay skins
