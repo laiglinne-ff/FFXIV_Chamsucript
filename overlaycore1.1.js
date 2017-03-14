@@ -1,8 +1,39 @@
-var Debug = new dbg(true);
-
-if (document.location.href.indexOf("file")>-1)
+var webs = null;
+var QueryString = function () 
 {
-	wsUri = "ws://127.0.0.1:10501/MiniParse";
+	// This function is anonymous, is executed immediately and 
+	// the return value is assigned to QueryString!
+	var query_string = {};
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) 
+	{
+		var pair = vars[i].split("=");
+			// If first entry with this name
+		if (typeof query_string[pair[0]] === "undefined") 
+		{
+			query_string[pair[0]] = decodeURIComponent(pair[1]);
+			// If second entry with this name
+		} 
+		else if (typeof query_string[pair[0]] === "string") 
+		{
+			var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+			query_string[pair[0]] = arr;
+			// If third or later entry with this name
+		} 
+		else 
+		{
+			query_string[pair[0]].push(decodeURIComponent(pair[1]));
+		}
+	} 
+	return query_string;
+}();
+
+// check host (islocal)
+if(wsUri.indexOf("@HOST_PORT@") > -1)
+{
+	wsUri = wsUri.replace(/ws:\/\/@HOST_PORT@/im, QueryString["HOST_PORT"]);
+	wsUri = wsUri.replace(/\/+/ig, "/");
 }
 
 function dbg(v)
@@ -18,8 +49,7 @@ function dbg(v)
 
 class ActWebsocketInterface
 {
-	constructor(uri, path = "MiniParse") 
-    {
+	constructor(uri, path = "MiniParse") {
 		// url check
 		var querySet = this.getQuerySet();
 		if(querySet["HOST_PORT"] != undefined)
@@ -31,17 +61,12 @@ class ActWebsocketInterface
 		this.activate = false;
 		
 		var This = this;
-
-		document.addEventListener('onBroadcastMessage', function(evt) 
-        {
+		document.addEventListener('onBroadcastMessage', function(evt) {
 			This.onBroadcastMessage(evt);
 		});
-
-		document.addEventListener('onRecvMessage', function(evt) 
-        {
+		document.addEventListener('onRecvMessage', function(evt) {
 			This.onRecvMessage(evt);
 		});
-
 		window.addEventListener('message', function (e) 
 		{
 			if (e.data.type === 'onBroadcastMessage') 
@@ -54,9 +79,7 @@ class ActWebsocketInterface
 			}
 		});
 	}
-
-	connect() 
-    {
+	connect() {
 		if(this.websocket != undefined && this.websocket != null)
 			this.close();
 		this.activate = true;
@@ -67,18 +90,14 @@ class ActWebsocketInterface
 		this.websocket.onclose = function(evt) {This.onclose(evt);};
 		this.websocket.onerror = function(evt) {This.onerror(evt);};
 	}
-
-	close() 
-    {
+	close() {
 		this.activate = false;
 		if(this.websocket != null && this.websocket != undefined)
 		{
 			this.websocket.close();
 		}
 	}
-
-	onopen(evt) 
-    {
+	onopen(evt) {
 		// get id from useragent
 		if(this.id != null && this.id != undefined)
 		{
@@ -86,28 +105,32 @@ class ActWebsocketInterface
 		}
 		else
 		{
-			var r = new RegExp('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}');
-			var id = r.exec(navigator.userAgent);
-			if(id != null && id.length == 1)
+			if(overlayWindowId != undefined)
 			{
-				this.set_id(id[0]);
-				self.id = id;
+				this.set_id(overlayWindowId);
+				self.id = overlayWindowId;
+			}
+			else
+			{
+				var r = new RegExp('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}');
+				var id = r.exec(navigator.userAgent);
+				if(id != null && id.length == 1)
+				{
+					this.set_id(id[0]);
+					self.id = id;
+				}
 			}
 		}
 	}
-
-	onclose(evt) 
-    {
+	onclose(evt) {
 		this.websocket = null;
 		if(this.activate)
 		{
 			var This = this;
-			setTimeout(function() {This.connect();}, 2000);
+			setTimeout(function() {This.connect();}, 5000);
 		}
 	}
-
-	onmessage(evt) 
-    {
+	onmessage(evt) {
 		if (evt.data == ".")
 		{
 			// ping pong
@@ -115,8 +138,7 @@ class ActWebsocketInterface
 		}
 		else
 		{
-			try
-            {
+			try{
 				var obj = JSON.parse(evt.data);
 				var type = obj["type"];
 				if(type == "broadcast")
@@ -143,36 +165,29 @@ class ActWebsocketInterface
 			}
 		}
 	}
-
-	onerror(evt) 
-    {
+	onerror(evt) {
 		this.websocket.close();
-		Debug.log(evt);
+		console.log(evt);
 	}
-
-	getQuerySet() 
-    {
+	getQuerySet() {
 		var querySet = {};
 		// get query 
 		var query = window.location.search.substring(1);
 		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++) 
-        {
-			try
-            {
+		for (var i = 0; i < vars.length; i++) {
+			try{
 				var pair = vars[i].split('=');
 				querieSet[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
 			}
 			catch(e)
 			{
-
 			}
 		}
 		return querySet;
 	}
 	
-	broadcast(type, msg)
-    {
+	
+	broadcast(type, msg){
 		var obj = {};
 		obj["type"] = "broadcast";
 		obj["msgtype"] = type;
@@ -180,8 +195,7 @@ class ActWebsocketInterface
 		this.websocket.send(JSON.stringify(obj));
 	}
 
-	send(to, type, msg)
-    {
+	send(to, type, msg){
 		var obj = {};
 		obj["type"] = "send";
 		obj["to"] = to;
@@ -190,8 +204,15 @@ class ActWebsocketInterface
 		this.websocket.send(JSON.stringify(obj));
 	}
 	
-	set_id(id)
-    {
+	overlayAPI(type, msg){
+		var obj = {};
+		obj["type"] = "overlayAPI";
+		obj["msgtype"] = type;
+		obj["msg"] = msg;
+		this.websocket.send(JSON.stringify(obj));
+	}
+	
+	set_id(id){
 		var obj = {};
 		obj["type"] = "set_id";
 		obj["id"] = id;
@@ -200,13 +221,31 @@ class ActWebsocketInterface
 
 	onRecvMessage(e)
 	{
-
 	}
 	
 	onBroadcastMessage(e)
 	{
-
 	}
+};
+
+// ACTWebSocket 적용
+class WebSocketImpl extends ActWebsocketInterface
+{
+    constructor(uri, path = "MiniParse") 
+    {
+        super(uri, path);
+    }
+    //send(to, type, msg)
+    //broadcast(type, msg)
+    onRecvMessage(e)
+    {
+        onRecvMessage(e);
+    }
+
+    onBroadcastMessage(e)
+    {
+        onBroadcastMessage(e);
+    }
 };
 
 // string : StringObject.format(ObjectArray a)
@@ -321,10 +360,11 @@ function domReady()
 	{
 		webs = new WebSocketImpl(wsUri);
 		webs.connect();
+		console.log("Connecting...");
 	}
 	catch(ex)
 	{
-
+		console.log("[ERROR] : WebSocket has Error [] "+ex);
 	}
 
 	// Logline
@@ -332,38 +372,23 @@ function domReady()
 	try { document.addEventListener('onLogLineRead', onLogLineRead); } catch (ex) { }
 
 	// On
-	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayUpdate is not defined."); }
+	try { document.addEventListener('onOverlayDataUpdate', onOverlayDataUpdate); } catch (ex) { console.log("Core Error : onOverlayDataUpdate is not defined."); }
 	try { document.addEventListener('onOverlayStateUpdate', onOverlayStateUpdate); } catch (ex) { }
 
     // ReadyEvent
     try { onDocumentLoad(); } catch(ex) { }
 }
 
-// ACTWebSocket 적용
-class WebSocketImpl extends ActWebsocketInterface
-{
-    constructor(uri, path = "MiniParse") 
-    {
-        super(uri, path);
-    }
-    //send(to, type, msg)
-    //broadcast(type, msg)
-    onRecvMessage(e)
-    {
-        onRecvMessage(e);
-    }
-
-    onBroadcastMessage(e)
-    {
-        onBroadcastMessage(e);
-    }
-};
-
-var webs = null;
-
 function onRecvMessage(e)
 {
-
+    if(e.detail.msgtype == "Chat")
+    {
+        document.dispatchEvent(new CustomEvent("onChatting",{detail:e.detail.msg}));
+    }
+    else
+    {
+        console.log(e.detail.msgtype+":"+e.detail.msg);
+    }
 }
 
 /* 메세지 처리부 여기 있음 맨날 못찾음 눈깔 ㅄ색기양 스크롤 한참 굴리지 마라 */
@@ -397,6 +422,12 @@ function onBroadcastMessage(e)
                 break;
             case "AbilityUse":
             
+                break;
+            case "Chat":
+                document.dispatchEvent(new CustomEvent("onChatting",{detail:e.detail.msg}));
+                break;
+            default:
+                console.log(e.detail.msgtype+":"+e.detail.msg);
                 break;
         }
     }
@@ -478,7 +509,6 @@ function Person(e, p)
     if (this.Job != "")
         this.Class = this.Job.toUpperCase();
 
-	this.petOwner = "";
 	this.petType = "Chocobo";
     this.isPet = false;
     this.role = "DPS";
@@ -495,7 +525,7 @@ function Person(e, p)
     {
         case "GLD" : this.Class = "PLD"; this.isLower = true; break;
         case "MRD" : this.Class = "WAR"; this.isLower = true; break;
-        case "PGL" : this.Class = "MNK"; this.isLower = true; break;
+        case "PUG" : this.Class = "MNK"; this.isLower = true; break;
         case "LNC" : this.Class = "DRG"; this.isLower = true; break;
         case "ROG" : this.Class = "NIN"; this.isLower = true; break;
         case "ARC" : this.Class = "BRD"; this.isLower = true; break;
@@ -558,28 +588,15 @@ function Person(e, p)
 		}
 	}
 	
-	try
+	if(this.isPet)
 	{
 		var regex = /(?:.*?)\((.*?)\)/im;
 		var matches = this.name.match(regex);
 		if(regex.test(this.name)) // do not use Array.length 
 		{
 			this.petOwner = matches[1];
-			this.isPet = true;
 		}
-	}
-	catch(ex)
-	{
-
-	}
-
-	if (this.petOwner != "" && this.Class == "")
-	{
-		this.isPet = false;
-		this.Job = "CBO";
-		this.Class = "CBO";
-		this.petType = "Chocobo_Persons";
-	}
+    }
 
     /* DPS RECALCULATE */
     if(this.overHeal != undefined)
@@ -1245,6 +1262,182 @@ function loadSetting(key)
 function saveSetting(key, val)
 {
 	localStorage.setItem(key, JSON.stringify(val));
+}
+
+// ver 3.2
+var instance = {
+	"142":{"name":"다날란","region":"다날란","duty":"아마지나배 투기대회 결승전"},
+	"143":{"name":"?","region":"?","duty":"성도 커르다스 방어전"},
+	"149":{"name":"?","region":"?","duty":"★ 카르테노 평원: 외곽 유적지대"},
+	"150":{"name":"모르도나","region":"모르도나","duty":"묵약의 탑"},
+	"151":{"name":"?","region":"?","duty":"크리스탈 타워: 어둠의 세계"},
+	"157":{"name":"라노시아","region":"라노시아","duty":"사스타샤 침식 동굴"},
+	"158":{"name":"라노시아","region":"라노시아","duty":"브레이플록스의 야영지"},
+	"159":{"name":"라노시아","region":"라노시아","duty":"방랑자의 궁전"},
+	"160":{"name":"라노시아","region":"라노시아","duty":"시리우스 대등대"},
+	"161":{"name":"다날란","region":"다날란","duty":"구리종 광산"},
+	"162":{"name":"다날란","region":"다날란","duty":"할라탈리 수련장"},
+	"163":{"name":"다날란","region":"다날란","duty":"카른의 무너진 사원"},
+	"164":{"name":"검은장막 숲","region":"검은장막 숲","duty":"탐타라 묘소"},
+	"166":{"name":"검은장막 숲","region":"검은장막 숲","duty":"하우케타 별궁"},
+	"167":{"name":"검은장막 숲","region":"검은장막 숲","duty":"옛 암다포르 성"},
+	"168":{"name":"커르다스","region":"커르다스","duty":"돌방패 경계초소"},
+	"169":{"name":"검은장막 숲","region":"검은장막 숲","duty":"토토라크 감옥"},
+	"170":{"name":"다날란","region":"다날란","duty":"나무꾼의 비명"},
+	"171":{"name":"커르다스","region":"커르다스","duty":"제멜 요새"},
+	"172":{"name":"커르다스","region":"커르다스","duty":"금빛 골짜기"},
+	"174":{"name":"?","region":"?","duty":"크리스탈 타워: 고대인의 미궁"},
+	"175":{"name":"라노시아","region":"라노시아","duty":"더 폴드"},
+	"184":{"name":"라노시아","region":"라노시아","duty":"더 폴드 (매칭 파티)"},
+	"186":{"name":"라노시아","region":"라노시아","duty":"더 폴드 (고정 소규모 파티)"},
+	"188":{"name":"라노시아","region":"라노시아","duty":"방랑자의 궁전(어려움)"},
+	"189":{"name":"검은장막 숲","region":"검은장막 숲","duty":"옛 암다포르 성(어려움)"},
+	"190":{"name":"?","region":"?","duty":"방황하는 사령을 쓰러뜨려라!"},
+	"191":{"name":"?","region":"?","duty":"독성 요괴꽃을 제거하라!"},
+	"192":{"name":"?","region":"?","duty":"무법자 집단 '나나니단'을 섬멸하라!"},
+	"193":{"name":"?","region":"?","duty":"대미궁 바하무트: 진성편 1"},
+	"194":{"name":"?","region":"?","duty":"대미궁 바하무트: 진성편 2"},
+	"195":{"name":"?","region":"?","duty":"대미궁 바하무트: 진성편 3"},
+	"196":{"name":"?","region":"?","duty":"대미궁 바하무트: 진성편 4"},
+	"202":{"name":"다날란","region":"다날란","duty":"이프리트 토벌전"},
+	"206":{"name":"라노시아","region":"라노시아","duty":"타이탄 토벌전"},
+	"207":{"name":"검은장막 숲","region":"검은장막 숲","duty":"선왕 모그루 모그 XII세 토벌전"},
+	"208":{"name":"커르다스","region":"커르다스","duty":"가루다 토벌전"},
+	"214":{"name":"?","region":"?","duty":"집단전 훈련을 완수하라!"},
+	"215":{"name":"?","region":"?","duty":"관문을 돌파하고 최심부의 적을 쓰러뜨려라!"},
+	"216":{"name":"?","region":"?","duty":"길거북을 사로잡아라!"},
+	"217":{"name":"다날란","region":"다날란","duty":"카스트룸 메리디아눔"},
+	"219":{"name":"?","region":"?","duty":"폭탄광 고블린 군단을 섬멸하라!"},
+	"220":{"name":"?","region":"?","duty":"몽환의 브라크시오를 쓰러뜨려라!"},
+	"221":{"name":"?","region":"?","duty":"오염원 몰볼을 쓰러뜨려라!"},
+	"222":{"name":"?","region":"?","duty":"갱도에 나타난 요마 부소를 쓰러뜨려라!"},
+	"223":{"name":"?","region":"?","duty":"무적의 부하를 조종하는 요마를 쓰러뜨려라!"},
+	"224":{"name":"다날란","region":"다날란","duty":"마도성 프라이토리움"},
+	"241":{"name":"라노시아","region":"라노시아","duty":"대미궁 바하무트: 해후편 1"},
+	"242":{"name":"라노시아","region":"라노시아","duty":"대미궁 바하무트: 해후편 2"},
+	"243":{"name":"라노시아","region":"라노시아","duty":"대미궁 바하무트: 해후편 3"},
+	"244":{"name":"라노시아","region":"라노시아","duty":"대미궁 바하무트: 해후편 4"},
+	"245":{"name":"라노시아","region":"라노시아","duty":"대미궁 바하무트: 해후편 5"},
+	"281":{"name":"라노시아","region":"라노시아","duty":"진 리바이어선 토벌전"},
+	"292":{"name":"다날란","region":"다날란","duty":"진 이프리트 토벌전"},
+	"293":{"name":"라노시아","region":"라노시아","duty":"진 타이탄 토벌전"},
+	"294":{"name":"커르다스","region":"커르다스","duty":"진 가루다 토벌전"},
+	"295":{"name":"다날란","region":"다날란","duty":"극 이프리트 토벌전"},
+	"296":{"name":"라노시아","region":"라노시아","duty":"극 타이탄 토벌전"},
+	"297":{"name":"커르다스","region":"커르다스","duty":"극 가루다 토벌전"},
+	"298":{"name":"?","region":"?","duty":"봄을 거느린 '봄 여왕'을 쓰러뜨려라!"},
+	"299":{"name":"?","region":"?","duty":"불길한 진형을 짜는 요마를 섬멸하라!"},
+	"300":{"name":"?","region":"?","duty":"세 거인족을 제압하여 유물을 지켜내라!"},
+	"332":{"name":"다날란","region":"다날란","duty":"리트아틴 강습전"},
+	"336":{"name":"라노시아","region":"라노시아","duty":"더 폴드"},
+	"337":{"name":"라노시아","region":"라노시아","duty":"더 폴드 (매칭 파티)"},
+	"348":{"name":"다날란","region":"다날란","duty":"알테마 웨폰 파괴작전"},
+	"349":{"name":"다날란","region":"다날란","duty":"구리종 광산(어려움)"},
+	"350":{"name":"검은장막 숲","region":"검은장막 숲","duty":"하우케타 별궁(어려움)"},
+	"352":{"name":"라노시아","region":"라노시아","duty":"더 폴드 (고정 소규모 파티)"},
+	"353":{"name":"?","region":"?","duty":"이벤트용 임무: 1"},
+	"354":{"name":"?","region":"?","duty":"이벤트용 임무: 2"},
+	"355":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편 1"},
+	"356":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편 2"},
+	"357":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편 3"},
+	"358":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편 4"},
+	"359":{"name":"라노시아","region":"라노시아","duty":"극 리바이어선 토벌전"},
+	"360":{"name":"다날란","region":"다날란","duty":"할라탈리 수련장(어려움)"},
+	"361":{"name":"라노시아","region":"라노시아","duty":"난파선의 섬"},
+	"362":{"name":"라노시아","region":"라노시아","duty":"브레이플록스의 야영지(어려움)"},
+	"363":{"name":"검은장막 숲","region":"검은장막 숲","duty":"옛 암다포르 시가지"},
+	"364":{"name":"검은장막 숲","region":"검은장막 숲","duty":"극왕 모그루 모그 XII세 토벌전"},
+	"365":{"name":"커르다스","region":"커르다스","duty":"돌방패 경계초소(어려움)"},
+	"366":{"name":"?","region":"?","duty":"길가메시 토벌전"},
+	"367":{"name":"다날란","region":"다날란","duty":"카른의 무너진 사원(어려움)"},
+	"368":{"name":"?","region":"?","duty":"도름 키마이라 토벌전"},
+	"369":{"name":"?","region":"?","duty":"하이드라 토벌전"},
+	"371":{"name":"커르다스","region":"커르다스","duty":"얼음외투 대빙벽"},
+	"372":{"name":"?","region":"?","duty":"크리스탈 타워: 시르쿠스 탑"},
+	"373":{"name":"검은장막 숲","region":"검은장막 숲","duty":"탐타라 묘소(어려움)"},
+	"374":{"name":"?","region":"?","duty":"진 라무 토벌전"},
+	"375":{"name":"?","region":"?","duty":"극 라무 토벌전"},
+	"376":{"name":"?","region":"?","duty":"외곽 유적지대(제압전)"},
+	"377":{"name":"?","region":"?","duty":"진 시바 토벌전"},
+	"378":{"name":"?","region":"?","duty":"극 시바 토벌전"},
+	"380":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편(영웅) 1"},
+	"381":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편(영웅) 2"},
+	"382":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편(영웅) 3"},
+	"383":{"name":"?","region":"?","duty":"대미궁 바하무트: 침공편(영웅) 4"},
+	"387":{"name":"라노시아","region":"라노시아","duty":"사스타샤 침식 동굴(어려움)"},
+	"394":{"name":"?","region":"?","duty":"투신 오딘 토벌전"},
+	"396":{"name":"?","region":"?","duty":"진 길가메시 토벌전"},
+	"416":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"구브라 환상도서관"},
+	"420":{"name":"아발라시아 구름바다","region":"아발라시아 구름바다","duty":"거두지 않는 섬"},
+	"421":{"name":"커르다스","region":"커르다스","duty":"커르다스 교황청"},
+	"422":{"name":"?","region":"?","duty":"외곽 유적지대(섬멸전)"},
+	"426":{"name":"?","region":"?","duty":"아씨엔 나브리알레스 토벌전"},
+	"430":{"name":"아발라시아 구름바다","region":"아발라시아 구름바다","duty":"무한연속 박물함"},
+	"431":{"name":"?","region":"?","duty":"봉인된 바위섬(쟁탈전)"},
+	"432":{"name":"?","region":"?","duty":"진 라바나 토벌전"},
+	"434":{"name":"커르다스","region":"커르다스","duty":"어스름 요새"},
+	"435":{"name":"드라바니아 구름바다","region":"드라바니아 구름바다","duty":"용의 둥지"},
+	"436":{"name":"?","region":"?","duty":"진 비스마르크 토벌전"},
+	"437":{"name":"?","region":"?","duty":"나이츠 오브 라운드 토벌전"},
+	"438":{"name":"아발라시아 구름바다","region":"아발라시아 구름바다","duty":"마과학 연구소"},
+	"441":{"name":"고지 드라바니아","region":"고지 드라바니아","duty":"솜 알"},
+	"442":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편 1"},
+	"443":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편 2"},
+	"444":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편 3"},
+	"445":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편 4"},
+	"446":{"name":"?","region":"?","duty":"극 라바나 토벌전"},
+	"447":{"name":"?","region":"?","duty":"극 비스마르크 토벌전"},
+	"448":{"name":"?","region":"?","duty":"극 나이츠 오브 라운드 토벌전"},
+	"449":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편(영웅) 1"},
+	"450":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편(영웅) 2"},
+	"451":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편(영웅) 3"},
+	"452":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 기동편(영웅) 4"},
+	"508":{"name":"드라바니아 구름바다","region":"드라바니아 구름바다","duty":"보이드의 방주"},
+	"509":{"name":"?","region":"?","duty":"이벤트용 임무: 3"},
+	"510":{"name":"라노시아","region":"라노시아","duty":"시리우스 대등대(어려움)"},
+	"511":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"성 모샨 식물원"},
+	"516":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"거꾸로 선 탑"},
+	"517":{"name":"?","region":"?","duty":"마신 세피로트 토벌전"},
+	"518":{"name":"라노시아","region":"라노시아","duty":"더 피스트 (8 대 8 / 매칭 파티)"},
+	"519":{"name":"검은장막 숲","region":"검은장막 숲","duty":"옛 암다포르 시가지(어려움)"},
+	"520":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편 1"},
+	"521":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편 2"},
+	"522":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편 3"},
+	"523":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편 4"},
+	"524":{"name":"?","region":"?","duty":"극 마신 세피로트 토벌전"},
+	"525":{"name":"라노시아","region":"라노시아","duty":"더 피스트 (4 대 4 / 개인)"},
+	"526":{"name":"라노시아","region":"라노시아","duty":"더 피스트 (4 대 4 / 고정 소규모 파티)"},
+	"527":{"name":"라노시아","region":"라노시아","duty":"더 피스트 (4 대 4 / 개인)"},
+	"528":{"name":"라노시아","region":"라노시아","duty":"더 피스트 (4 대 4 / 고정 소규모 파티)"},
+	"529":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편(영웅) 1"},
+	"530":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편(영웅) 2"},
+	"531":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편(영웅) 3"},
+	"532":{"name":"저지 드라바니아","region":"저지 드라바니아","duty":"기공성 알렉산더: 율동편(영웅) 4"},
+	"533":{"name":"?","region":"?","duty":"4개국 합동훈련"},
+	"537":{"name":"라노시아","region":"라노시아","duty":"범위 공격을 피하자!"},
+	"538":{"name":"라노시아","region":"라노시아","duty":"콤보를 이어 적개심을 끌자!"},
+	"539":{"name":"라노시아","region":"라노시아","duty":"실전에서 콤보를 사용해보자!"},
+	"540":{"name":"라노시아","region":"라노시아","duty":"다수의 적에게서 적개심을 끌자!"},
+	"541":{"name":"라노시아","region":"라노시아","duty":"실전에서 다수의 적과 싸워보자!"},
+	"542":{"name":"라노시아","region":"라노시아","duty":"멀리서 적개심을 끌자!"},
+	"543":{"name":"라노시아","region":"라노시아","duty":"적 지원군에 대처하자!"},
+	"544":{"name":"라노시아","region":"라노시아","duty":"파티원과 협력하여 적을 물리치자!"},
+	"545":{"name":"라노시아","region":"라노시아","duty":"파티원과 같은 적을 공격하자!"},
+	"546":{"name":"라노시아","region":"라노시아","duty":"적의 공격을 피하면서 싸우자!"},
+	"547":{"name":"라노시아","region":"라노시아","duty":"적 지원군에 대처하자!"},
+	"548":{"name":"라노시아","region":"라노시아","duty":"특수 장치를 활용하며 싸우자!"},
+	"549":{"name":"라노시아","region":"라노시아","duty":"파티원을 회복시키자!"},
+	"550":{"name":"라노시아","region":"라노시아","duty":"다수의 파티원을 회복시키자!"},
+	"551":{"name":"라노시아","region":"라노시아","duty":"적의 공격을 피하면서 싸우자!"},
+	"552":{"name":"라노시아","region":"라노시아","duty":"마지막 훈련!"},
+	"554":{"name":"?","region":"?","duty":"the Fields of Glory (Shatter)"},
+	"555":{"name":"드라바니아 구름바다","region":"드라바니아 구름바다","duty":"소르 카이"},
+	"556":{"name":"?","region":"?","duty":"금기도시 마하"},
+	"557":{"name":"?","region":"?","duty":"난파선의 섬 (어려움)"},
+	"558":{"name":"?","region":"?","duty":"아쿠아폴리스"},
+	"559":{"name":"?","region":"?","duty":"the Final Steps of Faith"},
+	"560":{"name":"?","region":"?","duty":"a Bloody Reunion"},
+	"566":{"name":"?","region":"?","duty":"the Minstrel's Ballad: Nidhogg's Rage"},
 }
 
 var combatLog = [];
