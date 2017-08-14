@@ -718,7 +718,7 @@ function Person(e, p)
     try
     {
         this.maxhitstr = this.maxhit.substring(0, this.maxhit.indexOf("-"));
-        this.maxhitval = parseInt(this.maxhit.substring(this.maxhit.indexOf("-") + 1).replace(/,/, "")).nanFix();
+        this.maxhitval = parseInt(this.maxhit.substring(this.maxhit.indexOf("-") + 1).replace(/[,.]/, "")).nanFix();
     }
     catch (ex)
     {
@@ -731,7 +731,7 @@ function Person(e, p)
     try
     {
         this.maxhealstr = this.maxheal.substring(0, this.maxheal.indexOf("-"));
-        this.maxhealval = parseInt(this.maxheal.substring(this.maxheal.indexOf("-") + 1).replace(/,/, "")).nanFix();
+        this.maxhealval = parseInt(this.maxheal.substring(this.maxheal.indexOf("-") + 1).replace(/[,.]/, "")).nanFix();
     }
     catch (ex)
     {
