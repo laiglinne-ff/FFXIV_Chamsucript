@@ -16,6 +16,7 @@ var sortKey = "encdps";
 
 var delayOK = !0;
 var diffcolor = !1;
+var shorter = false;
 
 var Debug = new dbg(false);
 
@@ -1374,12 +1375,12 @@ function Language(l)
 			if(this.dictionary.dots[v] != undefined && this.lang == "ko")
 				return this.dictionary.dots[v];
 			// 유저 사전 먼저 찾습니다.
-			else if(this.userdic.skills[v] != undefined)
+			else if(this.userdic.skills[v] != undefined && shorter) // optional
 				return this.userdic.skills[v];
 			// 그 후에 기본값
-			else if(this.dictionary.skills[v] != undefined)
+			else if(this.dictionary.skills[v] != undefined && shorter) // optional
 				return this.dictionary.skills[v];
-			else if(this.dictionary.display[v][this.lang] != undefined)
+			else if(this.dictionary.display[v][this.lang] != undefined) // JOBS
 				return this.dictionary.display[v][this.lang];
 			else
 				return v;
