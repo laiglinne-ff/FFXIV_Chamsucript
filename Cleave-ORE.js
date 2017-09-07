@@ -1,3 +1,5 @@
+var version = "1.4";
+
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
@@ -36,111 +38,7 @@ var jobColors = {
 	"LMB": [255, 204, 0]
 };
 
-var jobs = {
-	"ADV":{"code":  0},
-	"GLA":{"code":  1},
-	"GLD":{"code":  1},
-	"PGL":{"code":  2},
-	"MRD":{"code":  3},
-	"LNC":{"code":  4},
-	"ARC":{"code":  5},
-	"CNJ":{"code":  6},
-	"THM":{"code":  7},
-	/* CRAFTER */
-	"CRP":{"code":  8},
-	"BSM":{"code":  9},
-	"ARM":{"code": 10},
-	"GSM":{"code": 11},
-	"LTW":{"code": 12},
-	"WVR":{"code": 13},
-	"ALC":{"code": 14},
-	"CUL":{"code": 15},
-	/* GATHERER */
-	"MIN":{"code": 16},
-	"BTN":{"code": 17},
-	"FSH":{"code": 18},
-	/* JOBS */
-	"PLD":{"code": 19},
-	"MNK":{"code": 20},
-	"WAR":{"code": 21},
-	"DRG":{"code": 22},
-	"BRD":{"code": 23},
-	"WHM":{"code": 24},
-	"BLM":{"code": 25},
-	/* ARR CLASS */
-	"ACN":{"code": 26},
-	/* ARR JOBS */
-	"SMN":{"code": 27},
-	"PLD":{"code": 28},
-	/* WA! SHIVA! T13! NINJA-DA! */
-	"ROG":{"code": 29},
-	"NIN":{"code": 30},
-	/* HW JOBS */
-	"MCH":{"code": 31},
-	"DRK":{"code": 32},
-	"AST":{"code": 33},
-	/* SB JOBS */
-	"SAM":{"code": 34},
-	"RDM":{"code": 35},
-};
-
-var icons = {
-	"class":{
-		"GLD":"062301",
-		"GLA":"062301",
-		"MRD":"062302",
-		"PUG":"062303",
-		"LNC":"062304",
-		"ARC":"062305",
-		"CNJ":"062306",
-		"THM":"062307",
-		"ACN":"062308",
-		"ROG":"062309",
-		"CRP":"062310",
-		"BSM":"062311",
-		"ARM":"062312",
-		"GSM":"062313",
-		"LTW":"062314",
-		"WVR":"062315",
-		"ALC":"062316",
-		"CUL":"062317",
-		"MIN":"062318",
-		"BTN":"062319",
-		"FSH":"062320"
-	},
-	"job":{
-		"PLD":"062401",
-		"MNK":"062402",
-		"WAR":"062403",
-		"DRG":"062404",
-		"BRD":"062405",
-		"WHM":"062406",
-		"BLM":"062407",
-		"SMN":"062408",
-		"SCH":"062409",
-		"NIN":"062400",
-		"MCH":"062411",
-		"DRK":"062412",
-		"AST":"062413",
-		"SAM":"062414",
-		"RDM":"062415"
-	},
-	"crafter":{
-		"CRP":"062502",
-		"BSM":"062503",
-		"ARM":"062504",
-		"GSM":"062505",
-		"LTW":"062506",
-		"WVR":"062507",
-		"ALC":"062508",
-		"CUL":"062509"
-	},
-	"getherer":{
-		"MIN":"062510",
-		"BTN":"062511",
-		"FSH":"062512"
-	}
-};
+var chocoboskill = [ "초코 강타", "초코 방어", "초코 발차기", "초코 내려찍기", "초코 돌풍", "초코 돌격", "초코 쪼기", "초코 때리기", "초코 메디카", "초코 쇄도", "초코 케알", "초코 리제네", "チョコストライク", "チョコガード", "チョコキック", "チョコドロップ", "チョコブラスト", "チョコラッシュ", "チョコビーク", "チョコスラッシュ", "チョコメディカ", "チョコサージ", "チョコケアル", "チョコリジェネ", "Choco-frappe", "Choco-garde", "Choco-serres", "Choco-saut", "Choco-explosion", "Choco-ruée", "Choco-bec", "Choco-taillade", "Choco-médica", "Choco-ardeur", "Choco-soin", "Choco-récup", "Chocobo-Schlag", "Chocobo-Block", "Chocobo-Tritt", "Chocobo-Faller", "Chocobo-Knall", "Chocobo-Rausch", "Chocobo-Schnabel", "Chocobo-Hieb", "Chocobo-Reseda", "Chocobo-Quelle", "Chocobo-Vita", "Chocobo-Regena", "Choco Strike", "Choco Guard", "Choco Kick", "Choco Drop", "Choco Blast", "Choco Rush", "Choco Beak", "Choco Slash", "Choco Medica", "Choco Surge", "Choco Cure", "Choco Regen" ];
 
 var advclass = [ "GLD", "GLA", "MRD", "PUG", "LNC", "ROG", "ARC", "THM", "ACN", "CNJ" ];
 var advjob = [ "PLD", "PLD", "WAR", "MNK", "DRG", "NIN", "BRD", "BLM", "SMN", "WHM", "SCH", "MCH", "DRK", "AST", "SAM", "RDM" ];
@@ -154,8 +52,6 @@ var specialist = {
 	"MCH":[ "포탑", "AUTOTURRET", "オートタレット" ],
 	"LMB":[ "LIMIT BREAK", "リミット" ]
 };
-
-var chocoboskill = [ "초코 강타", "초코 방어", "초코 발차기", "초코 내려찍기", "초코 돌풍", "초코 돌격", "초코 쪼기", "초코 때리기", "초코 메디카", "초코 쇄도", "초코 케알", "초코 리제네", "チョコストライク", "チョコガード", "チョコキック", "チョコドロップ", "チョコブラスト", "チョコラッシュ", "チョコビーク", "チョコスラッシュ", "チョコメディカ", "チョコサージ", "チョコケアル", "チョコリジェネ", "Choco-frappe", "Choco-garde", "Choco-serres", "Choco-saut", "Choco-explosion", "Choco-ruée", "Choco-bec", "Choco-taillade", "Choco-médica", "Choco-ardeur", "Choco-soin", "Choco-récup", "Chocobo-Schlag", "Chocobo-Block", "Chocobo-Tritt", "Chocobo-Faller", "Chocobo-Knall", "Chocobo-Rausch", "Chocobo-Schnabel", "Chocobo-Hieb", "Chocobo-Reseda", "Chocobo-Quelle", "Chocobo-Vita", "Chocobo-Regena", "Choco Strike", "Choco Guard", "Choco Kick", "Choco Drop", "Choco Blast", "Choco Rush", "Choco Beak", "Choco Slash", "Choco Medica", "Choco Surge", "Choco Cure", "Choco Regen" ];
 
 var QueryString = function() 
 {
@@ -717,7 +613,7 @@ function Person(e, p)
 	/* FIX MAXHIT */
 	try
 	{
-		this.maxhitstr = this.maxhit.substring(0, this.maxhit.indexOf("-"));
+		this.maxhitstr = parent.langpack.get(this.maxhit.substring(0, this.maxhit.indexOf("-")));
 		this.maxhitval = parseInt(this.maxhit.substring(this.maxhit.indexOf("-") + 1).replace(/[,.]/, "")).nanFix();
 	}
 	catch (ex)
@@ -730,7 +626,7 @@ function Person(e, p)
 	/* FIX MAXHEAL */
 	try
 	{
-		this.maxhealstr = this.maxheal.substring(0, this.maxheal.indexOf("-"));
+		this.maxhealstr = parent.langpack.get(this.maxheal.substring(0, this.maxheal.indexOf("-")));
 		this.maxhealval = parseInt(this.maxheal.substring(this.maxheal.indexOf("-") + 1).replace(/[,.]/, "")).nanFix();
 	}
 	catch (ex)
@@ -1041,7 +937,7 @@ Person.prototype.get = function(key)
 	return this[key];
 }
 
-function Combatant(e, sortkey)
+function Combatant(e, sortkey, lang)
 {
 	if (sortkey == undefined) var sortkey = "encdps";
 	if (lang == undefined) var lang = "ko";
@@ -1305,115 +1201,6 @@ Combatant.prototype.resort = function(key, vector)
 	this.sort(vector);
 };
 
-// language 객체 입니다.
-function Language(l)
-{
-	if(l == undefined) var l = "ko";
-	this.lang = l;
-	this.jp = {
-		"PLD":"ナイト",
-		"GLD":"剣術士",
-		"WAR":"戦",
-		"MRD":"斧術士",
-		"DRK":"暗",
-		"MNK":"モンク",
-		"PGL":"格闘士",
-		"DRG":"竜",
-		"LNC":"槍術士",
-		"NIN":"忍",
-		"ROG":"双剣士",
-		"BRD":"吟",
-		"ARC":"弓術士",
-		"MCH":"機",
-		"SMN":"召",
-		"THM":"呪術士",
-		"BLM":"黒",
-		"WHM":"白",
-		"CNJ":"幻術士",
-		"SCH":"学",
-		"ACN":"巴術士",
-		"AST":"占",
-		"LMB":"リミット",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.en = {
-		"PLD":"PLD",
-		"GLD":"GLD",
-		"GLA":"GLA",
-		"WAR":"WAR",
-		"MRD":"MRD",
-		"DRK":"DRK",
-		"MNK":"MNK",
-		"PGL":"PGL",
-		"DRG":"DRG",
-		"LNC":"LNC",
-		"NIN":"NIN",
-		"ROG":"ROG",
-		"BRD":"BRD",
-		"ARC":"ARC",
-		"MCH":"MCH",
-		"SMN":"SMN",
-		"THM":"THM",
-		"BLM":"BLM",
-		"WHM":"WHM",
-		"CNJ":"CNJ",
-		"SCH":"SCH",
-		"ACN":"ACN",
-		"AST":"AST",
-		"LMB":"LMB",
-		"FAIRY":"FAIRY",
-		"AUTOTURRET":"AUTOTURRET",
-		"EGI":"EGI",
-		"CHOCOBO":"CHOCOBO",
-	};
-	this.ko = {
-		"PLD":"나이트",
-		"GLD":"검술사",
-		"WAR":"전사",
-		"MRD":"도끼술사",
-		"DRK":"암흑기사",
-		"MNK":"몽크",
-		"PGL":"격투사",
-		"DRG":"류상",
-		"LNC":"창술사",
-		"NIN":"닌자",
-		"ROG":"쌍검사",
-		"BRD":"음유시인",
-		"ARC":"궁술사",
-		"MCH":"기공사",
-		"SMN":"소환사",
-		"THM":"주술사",
-		"BLM":"흑마도사",
-		"WHM":"백마도사",
-		"CNJ":"환술사",
-		"SCH":"학자",
-		"ACN":"비술사",
-		"AST":"점성술사",
-		"LMB":"리미트",
-		"FAIRY":"요정",
-		"AUTOTURRET":"포탑",
-		"EGI":"에기",
-		"CHOCOBO":"초코보",
-	};
-}
-
-// 해당하는 언어의 값을 가져옵니다.
-// string : LanguageObject.get(string v)
-Language.prototype.get = function(v)
-{
-	try
-	{
-		return this[this.lang][v];
-	}
-	catch(ex)
-	{
-		return v;
-	}
-};
-
 function activeSort(key, merge)
 {
 	if (key.indexOf("merged") > -1)
@@ -1448,6 +1235,263 @@ function activeSort(key, merge)
 		key = "maxhealval";
 
 	return key;
+}
+
+// language 객체 입니다.
+function Language(l)
+{
+	if(l == undefined) var l = "ko";
+	this.lang = l;
+
+	this.dictionary = {
+		// Default = en
+		"display":{
+			"PLD":{"ko":"나", "jp":"ナイト"},
+			"GLD":{"ko":"검술사", "jp":"剣術士"},
+			"WAR":{"ko":"전", "jp":"戦"},
+			"MRD":{"ko":"도끼술사", "jp":"斧術士"},
+			"DRK":{"ko":"암", "jp":"暗"},
+			"MNK":{"ko":"몽", "jp":"モンク"},
+			"PGL":{"ko":"격투사", "jp":"格闘士"},
+			"DRG":{"ko":"용", "jp":"竜"},
+			"LNC":{"ko":"창술사", "jp":"槍術士"},
+			"NIN":{"ko":"닌", "jp":"忍"},
+			"ROG":{"ko":"쌍검사", "jp":"双剣士"},
+			"BRD":{"ko":"음", "jp":"吟"},
+			"ARC":{"ko":"궁술사", "jp":"弓術士"},
+			"MCH":{"ko":"기", "jp":"機"},
+			"SMN":{"ko":"솬", "jp":"召"},
+			"BLM":{"ko":"흑", "jp":"黒"},
+			"THM":{"ko":"주술사", "jp":"呪術士"},
+			"WHM":{"ko":"백", "jp":"白"},
+			"CNJ":{"ko":"환술사", "jp":"幻術士"},
+			"SCH":{"ko":"학", "jp":"学"},
+			"ACN":{"ko":"비술사", "jp":"巴術士"},
+			"AST":{"ko":"점", "jp":"占"},
+			"LMB":{"ko":"리밋", "jp":"リミット"},
+			"FAIRY":{"ko":"요정", "jp":"FAIRY"},
+			"AUTOTURRET":{"ko":"포탑", "jp":"オートタレット"},
+			"EGI":{"ko":"에기", "jp":"エギ"},
+			"CARBUNCLE":{"ko":"카벙클", "jp":"カーバンクル"},
+			"CHOCOBO":{"ko":"초코보", "jp":"チョコ"},
+		},
+		"skills":
+		{
+			// ko
+			"재빠른 검격":"재빠른",
+			"야성의 검격":"야성",
+			"방패 던지기":"방던",
+			"폭도의 검격":"폭도",
+			"방패 후려치기":"방.후",
+			"할로네의 분노":"할로네",
+			"내면의 기개":"내면",
+			"꿰뚫는 검격":"꿰뚫",
+			"제왕의 권위":"제왕",
+			"육중한 일격":"육중",
+			"두개골 절단":"절단",
+			"잔혹한 일격":"잔혹",
+			"도끼 던지기":"도.던",
+			"최후의 일격":"최후",
+			"휘도는 도끼":"휘도",
+			"강철 회오리":"강철",
+			"강렬한 참격":"강렬",
+			"비열한 기습":"비열",
+			"흡수의 일격":"흡수",
+			"심연의 갈증":"심.갈",
+			"어둠의 여행자":"여행자",
+			"정권 지르기":"정권",
+			"혈도 찌르기":"혈도",
+			"직선 찌르기":"직선",
+			"눈속임 공격":"눈속임",
+			"사선 찌르기":"사선",
+			"다리 쳐내기":"다리",
+			"꿰뚫는 발톱":"창던지기",
+			"올려 찌르기":"올.찌",
+			"이단 찌르기":"이단",
+			"몸통 가르기":"몸.가",
+			"악몽의 쇄기":"악몽",
+			"가시 소용돌이":"소용돌이",
+			"게이르스코굴":"코굴",
+			"쌍검 회전베기":"회전",
+			"마무리 일격":"마.격",
+			"춤추는 칼날":"춤.칼",
+			"풍마의 수리검":"풍마",
+			"그림자 송곳니":"그.송",
+			"육중한 사격":"육중",
+			"재빠른 활시위":"재빠른",
+			"침묵의 화살":"침묵",
+			"죽음의 화살비":"죽.비",
+			"천상의 화살":"천상",
+			"강렬한 사격":"강렬",
+			"생명력 흡수":"생.흡",
+			"미아즈마 버스트":"버스트",
+
+			// en
+
+			// jp
+
+			// fr
+
+			// de
+		},
+		"dots":
+		{
+			"Goring Blade (*)":"*꿰뚫",
+			"Circle of Scorn (*)":"*파멸의 진",
+			"Fracture (*)":"*골절",
+			"Scourge (*)":"*재앙",
+			"Aero (*)":"*에어로",
+			"Aero II (*)":"*에어로라",
+			"Aero Iii (*)":"*에어로가",
+			"Medica II (*)":"*메디카라",
+			"Regen (*)":"*리제네",
+			"Combust (*)":"*컴버스",
+			"Combust II (*)":"*컴버라",
+			"Touch Of Death (*)":"*혈도",
+			"Phlebotomize (*)":"*이단",
+			"Chaos Thrust (*)":"*꽃잎",
+			"Shadow Fang (*)":"*그.송",
+			"Mutilation (*)":"*무쌍",
+			"Venomous Bite (*)":"*독화살",
+			"Windbite (*)":"*바람",
+			"Lead Shot (*)":"*산탄",
+			"Bio (*)":"*바이오",
+			"Bio II (*)":"*바이오라",
+			"Miasma (*)":"*미아즈마",
+			"Miasma II (*)":"*미아즈라",
+			"Thunder (*)":"*선더",
+		}
+	}
+}
+
+// 해당하는 언어의 값을 가져옵니다.
+// string : LanguageObject.get(string v)
+Language.prototype.get = function(v, type)
+{
+	try
+	{
+		if(this.dictionary.dots[v] != undefined && this.lang == "ko")
+			return this.dictionary.dots[v];
+		else if(this.dictionary.skills[v] != undefined)
+			return this.dictionary.skills[v];
+		else if(this.dictionary.display[v][this.lang] != undefined)
+			return this.dictionary.display[v][this.lang];
+		else
+			return v;
+	}
+	catch(ex)
+	{
+		return v;
+	}
+};
+
+function ImageLib()
+{
+	this.jobs = {
+		"ADV":{"code":  0},
+		"GLA":{"code":  1},
+		"GLD":{"code":  1},
+		"PGL":{"code":  2},
+		"MRD":{"code":  3},
+		"LNC":{"code":  4},
+		"ARC":{"code":  5},
+		"CNJ":{"code":  6},
+		"THM":{"code":  7},
+		/* CRAFTER */
+		"CRP":{"code":  8},
+		"BSM":{"code":  9},
+		"ARM":{"code": 10},
+		"GSM":{"code": 11},
+		"LTW":{"code": 12},
+		"WVR":{"code": 13},
+		"ALC":{"code": 14},
+		"CUL":{"code": 15},
+		/* GATHERER */
+		"MIN":{"code": 16},
+		"BTN":{"code": 17},
+		"FSH":{"code": 18},
+		/* JOBS */
+		"PLD":{"code": 19},
+		"MNK":{"code": 20},
+		"WAR":{"code": 21},
+		"DRG":{"code": 22},
+		"BRD":{"code": 23},
+		"WHM":{"code": 24},
+		"BLM":{"code": 25},
+		/* ARR CLASS */
+		"ACN":{"code": 26},
+		/* ARR JOBS */
+		"SMN":{"code": 27},
+		"PLD":{"code": 28},
+		/* WA! SHIVA! T13! NINJA-DA! */
+		"ROG":{"code": 29},
+		"NIN":{"code": 30},
+		/* HW JOBS */
+		"MCH":{"code": 31},
+		"DRK":{"code": 32},
+		"AST":{"code": 33},
+		/* SB JOBS */
+		"SAM":{"code": 34},
+		"RDM":{"code": 35},
+	};
+
+	this.icons = {
+		"class":{
+			"GLD":"062301",
+			"GLA":"062301",
+			"MRD":"062302",
+			"PUG":"062303",
+			"LNC":"062304",
+			"ARC":"062305",
+			"CNJ":"062306",
+			"THM":"062307",
+			"ACN":"062308",
+			"ROG":"062309",
+			"CRP":"062310",
+			"BSM":"062311",
+			"ARM":"062312",
+			"GSM":"062313",
+			"LTW":"062314",
+			"WVR":"062315",
+			"ALC":"062316",
+			"CUL":"062317",
+			"MIN":"062318",
+			"BTN":"062319",
+			"FSH":"062320"
+		},
+		"job":{
+			"PLD":"062401",
+			"MNK":"062402",
+			"WAR":"062403",
+			"DRG":"062404",
+			"BRD":"062405",
+			"WHM":"062406",
+			"BLM":"062407",
+			"SMN":"062408",
+			"SCH":"062409",
+			"NIN":"062400",
+			"MCH":"062411",
+			"DRK":"062412",
+			"AST":"062413",
+			"SAM":"062414",
+			"RDM":"062415"
+		},
+		"crafter":{
+			"CRP":"062502",
+			"BSM":"062503",
+			"ARM":"062504",
+			"GSM":"062505",
+			"LTW":"062506",
+			"WVR":"062507",
+			"ALC":"062508",
+			"CUL":"062509"
+		},
+		"getherer":{
+			"MIN":"062510",
+			"BTN":"062511",
+			"FSH":"062512"
+		}
+	};
 }
 
 // bool : getLog(string e)
