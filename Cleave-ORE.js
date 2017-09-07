@@ -1,5 +1,3 @@
-var version = "1.4";
-
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
@@ -1240,9 +1238,7 @@ function activeSort(key, merge)
 // language 객체 입니다.
 function Language(l)
 {
-	if(l == undefined) var l = "ko";
-	this.lang = l;
-
+	this.lang = (l == undefined ? "ko" : l);
 	this.dictionary = {
 		// Default = en
 		"display":{
@@ -1362,135 +1358,89 @@ function Language(l)
 			"Thunder (*)":"*선더",
 		}
 	}
+
+	// 해당하는 언어의 값을 가져옵니다.
+	// string : LanguageObject.get(string v)
+	this.get = function(v, type)
+	{
+		get = function(v, type)
+		{
+			try
+			{
+				if(this.dictionary.dots[v] != undefined && this.lang == "ko")
+					return this.dictionary.dots[v];
+				else if(this.dictionary.skills[v] != undefined)
+					return this.dictionary.skills[v];
+				else if(this.dictionary.display[v][this.lang] != undefined)
+					return this.dictionary.display[v][this.lang];
+				else
+					return v;
+			}
+			catch(ex)
+			{
+				return v;
+			}
+		};
+	};
 }
 
-// 해당하는 언어의 값을 가져옵니다.
-// string : LanguageObject.get(string v)
-Language.prototype.get = function(v, type)
-{
-	try
-	{
-		if(this.dictionary.dots[v] != undefined && this.lang == "ko")
-			return this.dictionary.dots[v];
-		else if(this.dictionary.skills[v] != undefined)
-			return this.dictionary.skills[v];
-		else if(this.dictionary.display[v][this.lang] != undefined)
-			return this.dictionary.display[v][this.lang];
-		else
-			return v;
-	}
-	catch(ex)
-	{
-		return v;
-	}
-};
-
-function ImageLib()
+function FFXIVLib()
 {
 	this.jobs = {
-		"ADV":{"code":  0},
-		"GLA":{"code":  1},
-		"GLD":{"code":  1},
-		"PGL":{"code":  2},
-		"MRD":{"code":  3},
-		"LNC":{"code":  4},
-		"ARC":{"code":  5},
-		"CNJ":{"code":  6},
-		"THM":{"code":  7},
+		"ADV": { "code": 0 },
+		"GLA": { "code": 1 },
+		"GLD": { "code": 1 },
+		"PGL": { "code": 2 },
+		"MRD": { "code": 3 },
+		"LNC": { "code": 4 },
+		"ARC": { "code": 5 },
+		"CNJ": { "code": 6 },
+		"THM": { "code": 7 },
 		/* CRAFTER */
-		"CRP":{"code":  8},
-		"BSM":{"code":  9},
-		"ARM":{"code": 10},
-		"GSM":{"code": 11},
-		"LTW":{"code": 12},
-		"WVR":{"code": 13},
-		"ALC":{"code": 14},
-		"CUL":{"code": 15},
+		"CRP": { "code": 8 },
+		"BSM": { "code": 9 },
+		"ARM": { "code": 10 },
+		"GSM": { "code": 11 },
+		"LTW": { "code": 12 },
+		"WVR": { "code": 13 },
+		"ALC": { "code": 14 },
+		"CUL": { "code": 15 },
 		/* GATHERER */
-		"MIN":{"code": 16},
-		"BTN":{"code": 17},
-		"FSH":{"code": 18},
+		"MIN": { "code": 16 },
+		"BTN": { "code": 17 },
+		"FSH": { "code": 18 },
 		/* JOBS */
-		"PLD":{"code": 19},
-		"MNK":{"code": 20},
-		"WAR":{"code": 21},
-		"DRG":{"code": 22},
-		"BRD":{"code": 23},
-		"WHM":{"code": 24},
-		"BLM":{"code": 25},
+		"PLD": { "code": 19 },
+		"MNK": { "code": 20 },
+		"WAR": { "code": 21 },
+		"DRG": { "code": 22 },
+		"BRD": { "code": 23 },
+		"WHM": { "code": 24 },
+		"BLM": { "code": 25 },
 		/* ARR CLASS */
-		"ACN":{"code": 26},
+		"ACN": { "code": 26 },
 		/* ARR JOBS */
-		"SMN":{"code": 27},
-		"PLD":{"code": 28},
+		"SMN": { "code": 27 },
+		"PLD": { "code": 28 },
 		/* WA! SHIVA! T13! NINJA-DA! */
-		"ROG":{"code": 29},
-		"NIN":{"code": 30},
+		"ROG": { "code": 29 },
+		"NIN": { "code": 30 },
 		/* HW JOBS */
-		"MCH":{"code": 31},
-		"DRK":{"code": 32},
-		"AST":{"code": 33},
+		"MCH": { "code": 31 },
+		"DRK": { "code": 32 },
+		"AST": { "code": 33 },
 		/* SB JOBS */
-		"SAM":{"code": 34},
-		"RDM":{"code": 35},
+		"SAM": { "code": 34 },
+		"RDM": { "code": 35 },
 	};
-
-	this.icons = {
-		"class":{
-			"GLD":"062301",
-			"GLA":"062301",
-			"MRD":"062302",
-			"PUG":"062303",
-			"LNC":"062304",
-			"ARC":"062305",
-			"CNJ":"062306",
-			"THM":"062307",
-			"ACN":"062308",
-			"ROG":"062309",
-			"CRP":"062310",
-			"BSM":"062311",
-			"ARM":"062312",
-			"GSM":"062313",
-			"LTW":"062314",
-			"WVR":"062315",
-			"ALC":"062316",
-			"CUL":"062317",
-			"MIN":"062318",
-			"BTN":"062319",
-			"FSH":"062320"
-		},
-		"job":{
-			"PLD":"062401",
-			"MNK":"062402",
-			"WAR":"062403",
-			"DRG":"062404",
-			"BRD":"062405",
-			"WHM":"062406",
-			"BLM":"062407",
-			"SMN":"062408",
-			"SCH":"062409",
-			"NIN":"062400",
-			"MCH":"062411",
-			"DRK":"062412",
-			"AST":"062413",
-			"SAM":"062414",
-			"RDM":"062415"
-		},
-		"crafter":{
-			"CRP":"062502",
-			"BSM":"062503",
-			"ARM":"062504",
-			"GSM":"062505",
-			"LTW":"062506",
-			"WVR":"062507",
-			"ALC":"062508",
-			"CUL":"062509"
-		},
-		"getherer":{
-			"MIN":"062510",
-			"BTN":"062511",
-			"FSH":"062512"
-		}
+	
+	this.getJobUrl = function(filename, dir) 
+	{
+		if (dir == undefined)
+			dir = "Glow";
+		if (filename == undefined)
+			dir = "PLD";
+		return "https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/images/job/" + dir + "/" + filename + ".png?raw=true";
 	};
 }
 
