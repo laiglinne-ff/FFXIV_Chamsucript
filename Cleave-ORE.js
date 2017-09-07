@@ -1365,32 +1365,29 @@ function Language(l)
 
 	// 해당하는 언어의 값을 가져옵니다.
 	// string : LanguageObject.get(string v)
-	this.get = function(v, type)
+	this.get = function(v)
 	{
-		get = function(v, type)
+		// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
+		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
+		try
 		{
-			// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
-			this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
-			try
-			{
-				if(this.dictionary.dots[v] != undefined && this.lang == "ko")
-					return this.dictionary.dots[v];
-				// 유저 사전 먼저 찾습니다.
-				else if(this.userdic.skills[v] != undefined)
-					return this.userdic.skills[v];
-				// 그 후에 기본값
-				else if(this.dictionary.skills[v] != undefined)
-					return this.dictionary.skills[v];
-				else if(this.dictionary.display[v][this.lang] != undefined)
-					return this.dictionary.display[v][this.lang];
-				else
-					return v;
-			}
-			catch(ex)
-			{
+			if(this.dictionary.dots[v] != undefined && this.lang == "ko")
+				return this.dictionary.dots[v];
+			// 유저 사전 먼저 찾습니다.
+			else if(this.userdic.skills[v] != undefined)
+				return this.userdic.skills[v];
+			// 그 후에 기본값
+			else if(this.dictionary.skills[v] != undefined)
+				return this.dictionary.skills[v];
+			else if(this.dictionary.display[v][this.lang] != undefined)
+				return this.dictionary.display[v][this.lang];
+			else
 				return v;
-			}
-		};
+		}
+		catch(ex)
+		{
+			return v;
+		}
 	};
 
 	this.getUserDic = function()
