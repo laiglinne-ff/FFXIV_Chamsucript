@@ -1239,6 +1239,10 @@ function activeSort(key, merge)
 function Language(l)
 {
 	this.lang = (l == undefined ? "ko" : l);
+	this.userdic = {};
+
+	this.getUserDic();
+
 	this.dictionary = {
 		// Default = en
 		"display":{
@@ -1365,10 +1369,16 @@ function Language(l)
 	{
 		get = function(v, type)
 		{
+			// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
+			this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
 			try
 			{
 				if(this.dictionary.dots[v] != undefined && this.lang == "ko")
 					return this.dictionary.dots[v];
+				// 유저 사전 먼저 찾습니다.
+				else if(this.userdic.skills[v] != undefined)
+					return this.userdic.skills[v];
+				// 그 후에 기본값
 				else if(this.dictionary.skills[v] != undefined)
 					return this.dictionary.skills[v];
 				else if(this.dictionary.display[v][this.lang] != undefined)
@@ -1382,6 +1392,35 @@ function Language(l)
 			}
 		};
 	};
+
+	this.getUserDic = function()
+	{
+		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
+		if(this.userdic != null && this.userdic != undefined)
+		{
+			this.userdic = this.dictionary;
+			this.setUserDic();
+		}
+
+		return this.userdic;
+	};
+
+	this.setUserDic = function()
+	{
+		localStorage.setItem("claveore-dic", JSON.stringify(userdic));
+	}
+
+	this.deleteUserSkillItem = function(key)
+	{
+		if(this.userdic.skills[key] != undefined)
+			delete this.userdic.skills[key];
+	}
+
+	// 추가 및 수정
+	this.setUserSkillItem = function(key, val)
+	{
+		this.userdic.skills[key] = val;
+	}
 }
 
 function FFXIVLib()
