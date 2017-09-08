@@ -939,8 +939,20 @@ Person.prototype.get = function(key)
 function Combatant(e, sortkey, lang)
 {
 	if (sortkey == undefined) var sortkey = "encdps";
-	if (lang == undefined) var lang = "ko";
 	if (e == undefined) return;
+	if (!langpack.languageDefine)
+	{
+		if (lang == undefined) 
+		{
+			var lang = "ko";
+			langpack = new Language(lang);
+		}
+		else
+		{
+			langpack = new Language(lang);
+			langpack.setLangDefine(lang);
+		}
+	}
 
 	this.Encounter = {};
 	this.Combatant = {};
@@ -1011,7 +1023,6 @@ function Combatant(e, sortkey, lang)
 	this.DURATION = this.Encounter.DURATION;
 	this.summonerMerge = !0;
 	this.sortkey = sortkey;
-	this.langpack = new Language(lang);
 	this.isActive = e.detail.isActive;
 	this.combatKey = this.Encounter.title.concat(this.Encounter.damage).concat(this.Encounter.healed);
 	this.persons = this.Combatant;
@@ -1239,10 +1250,9 @@ function activeSort(key, merge)
 // language 객체 입니다.
 function Language(l)
 {
+	this.languageDefine = false;
 	this.lang = (l == undefined ? "ko" : l);
-	this.userdic = {};
-
-	this.getUserDic();
+	this.userdic = null;
 
 	this.dictionary = {
 		// Default = en
@@ -1274,7 +1284,7 @@ function Language(l)
 			"AUTOTURRET":{"ko":"포탑", "jp":"オートタレット"},
 			"EGI":{"ko":"에기", "jp":"エギ"},
 			"CARBUNCLE":{"ko":"카벙클", "jp":"カーバンクル"},
-			"CHOCOBO":{"ko":"초코보", "jp":"チョコ"},
+			"CHOCOBO":{"ko":"초코보", "jp":"チョコ"}
 		},
 		"skills":
 		{
@@ -1325,7 +1335,7 @@ function Language(l)
 			"천상의 화살":"천상",
 			"강렬한 사격":"강렬",
 			"생명력 흡수":"생.흡",
-			"미아즈마 버스트":"버스트",
+			"미아즈마 버스트":"버스트"
 
 			// en
 
@@ -1360,66 +1370,98 @@ function Language(l)
 			"Bio II (*)":"*바이오라",
 			"Miasma (*)":"*미아즈마",
 			"Miasma II (*)":"*미아즈라",
-			"Thunder (*)":"*선더",
-		}
-	}
-
-	// 해당하는 언어의 값을 가져옵니다.
-	// string : LanguageObject.get(string v)
-	this.get = function(v)
-	{
-		// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
-		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
-		try
-		{
-			if(this.dictionary.dots[v] != undefined && this.lang == "ko")
-				return this.dictionary.dots[v];
-			// 유저 사전 먼저 찾습니다.
-			else if(this.userdic.skills[v] != undefined && shorter) // optional
-				return this.userdic.skills[v];
-			// 그 후에 기본값
-			else if(this.dictionary.skills[v] != undefined && shorter) // optional
-				return this.dictionary.skills[v];
-			else if(this.dictionary.display[v][this.lang] != undefined) // JOBS
-				return this.dictionary.display[v][this.lang];
-			else
-				return v;
-		}
-		catch(ex)
-		{
-			return v;
+			"Thunder (*)":"*선더"
 		}
 	};
 
-	this.getUserDic = function()
+	this.getUserDic();
+}
+
+// 해당하는 언어의 값을 가져옵니다.
+// string : LanguageObject.get(string v)
+Language.prototype.get = function(v)
+{
+	var returnvalue = this.getPriv(v);
+
+	if(returnvalue != undefined)
+		return returnvalue;
+	else
+		return v;
+};
+
+Language.prototype.getPriv = function(v)
+{
+	// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
+	this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
+	try
+	{
+		if(this.dictionary.dots[v] != undefined && this.lang == "ko")
+			return this.dictionary.dots[v];
+		else if(this.userdic != null)
+		{
+			// 유저 사전 먼저 찾습니다.
+			if(this.userdic.skills[v] != undefined && shorter) // optional
+				return this.userdic.skills[v];
+		}
+		// 그 후에 기본값
+		else if(this.dictionary.skills[v] != undefined && shorter) // optional
+			return this.dictionary.skills[v];
+		else if(this.dictionary.display[v] != undefined)
+		{
+			if(this.dictionary.display[v][this.lang] != undefined) // JOBS
+				return this.dictionary.display[v][this.lang];
+		}
+		else
+			return v;
+	}
+	catch(ex)
+	{
+		console.log(ex);
+		return v;
+	}
+}
+
+Language.prototype.setLangDefine = function(ln)
+{
+	if(ln != undefined)
+	{
+		this.languageDefine = true;
+		this.lang = b;
+	}
+};
+
+Language.prototype.getUserDic = function()
+{
+	try
 	{
 		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
-		if(this.userdic != null && this.userdic != undefined)
+		if(this.userdic == null || this.userdic == undefined)
 		{
 			this.userdic = this.dictionary;
 			this.setUserDic();
 		}
-
-		return this.userdic;
-	};
-
-	this.setUserDic = function()
-	{
-		localStorage.setItem("claveore-dic", JSON.stringify(userdic));
 	}
-
-	this.deleteUserSkillItem = function(key)
+	catch(ex)
 	{
-		if(this.userdic.skills[key] != undefined)
-			delete this.userdic.skills[key];
-	}
 
-	// 추가 및 수정
-	this.setUserSkillItem = function(key, val)
-	{
-		this.userdic.skills[key] = val;
 	}
-}
+};
+
+Language.prototype.setUserDic = function()
+{
+	localStorage.setItem("claveore-dic", JSON.stringify(this.userdic));
+};
+
+Language.prototype.deleteUserSkillItem = function(key)
+{
+	if(this.userdic.skills[key] != undefined)
+		delete this.userdic.skills[key];
+};
+
+Language.prototype.setUserSkillItem = function(key, val)
+{
+	this.userdic.skills[key] = val;
+};
 
 function FFXIVLib()
 {
@@ -1471,15 +1513,17 @@ function FFXIVLib()
 		"RDM": { "code": 35 },
 	};
 	
-	this.getJobUrl = function(filename, dir) 
-	{
-		if (dir == undefined)
-			dir = "Glow";
-		if (filename == undefined)
-			dir = "PLD";
-		return "https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/images/job/" + dir + "/" + filename + ".png?raw=true";
-	};
+	this.getJobUrl 
 }
+
+FFXIVLib.prototype.getJobUrl = function(filename, dir) 
+{
+	if (dir == undefined)
+		dir = "Glow";
+	if (filename == undefined)
+		dir = "PLD";
+	return "https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/images/job/" + dir + "/" + filename + ".png?raw=true";
+};
 
 // bool : getLog(string e)
 // e : combatKey
@@ -1578,3 +1622,6 @@ function saveSetting(key, val)
 {
 	localStorage.setItem(key, JSON.stringify(val));
 }
+
+var langpack = new Language("ko");
+var Lib = new FFXIVLib();
