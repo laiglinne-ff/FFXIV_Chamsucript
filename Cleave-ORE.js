@@ -1,3 +1,11 @@
+var onACTWebSocket = false;
+if(window.navigator.userAgent.indexOf("OverlayWindow") > -1 &&
+	window.navigator.userAgent.indexOf("QtWebEngine") > -1)
+{
+	console.log("On ACTWebSocket Mode");
+	onACTWebSocket = true;
+}
+
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
