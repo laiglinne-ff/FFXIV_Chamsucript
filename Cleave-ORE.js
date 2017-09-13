@@ -39,7 +39,7 @@ var jobColors = {
 
 var chocoboskill = [ "초코 강타", "초코 방어", "초코 발차기", "초코 내려찍기", "초코 돌풍", "초코 돌격", "초코 쪼기", "초코 때리기", "초코 메디카", "초코 쇄도", "초코 케알", "초코 리제네", "チョコストライク", "チョコガード", "チョコキック", "チョコドロップ", "チョコブラスト", "チョコラッシュ", "チョコビーク", "チョコスラッシュ", "チョコメディカ", "チョコサージ", "チョコケアル", "チョコリジェネ", "Choco-frappe", "Choco-garde", "Choco-serres", "Choco-saut", "Choco-explosion", "Choco-ruée", "Choco-bec", "Choco-taillade", "Choco-médica", "Choco-ardeur", "Choco-soin", "Choco-récup", "Chocobo-Schlag", "Chocobo-Block", "Chocobo-Tritt", "Chocobo-Faller", "Chocobo-Knall", "Chocobo-Rausch", "Chocobo-Schnabel", "Chocobo-Hieb", "Chocobo-Reseda", "Chocobo-Quelle", "Chocobo-Vita", "Chocobo-Regena", "Choco Strike", "Choco Guard", "Choco Kick", "Choco Drop", "Choco Blast", "Choco Rush", "Choco Beak", "Choco Slash", "Choco Medica", "Choco Surge", "Choco Cure", "Choco Regen" ];
 
-var advclass = [ "GLD", "GLA", "MRD", "PUG", "LNC", "ROG", "ARC", "THM", "ACN", "CNJ" ];
+var advclass = [ "GLD", "GLA", "MRD", "PGL", "LNC", "ROG", "ARC", "THM", "ACN", "CNJ" ];
 var advjob = [ "PLD", "PLD", "WAR", "MNK", "DRG", "NIN", "BRD", "BLM", "SMN", "WHM", "SCH", "MCH", "DRK", "AST", "SAM", "RDM" ];
 
 var tanker = [ "PLD", "WAR", "DRK" ];
@@ -80,40 +80,47 @@ var QueryString = function()
 
 var host_port = QueryString.HOST_PORT;
 
-if(typeof(host_port) === "undefined")
+try
 {
-	/* FOR LOCAL TEST */
-	if (document.location.href.indexOf("file")>-1)
+	if(typeof(host_port) === "undefined")
 	{
-		wsUri = "ws://127.0.0.1:10501/MiniParse";
+		/* FOR LOCAL TEST */
+		if (document.location.href.indexOf("file")>-1)
+		{
+			wsUri = "ws://127.0.0.1:10501/MiniParse";
+		}
+	}
+	else
+	{
+		while (host_port.endsWith('/')) 
+		{
+			host_port = host_port.substring(0, host_port.length - 1);
+		}
+	
+		if (wsUri.indexOf("//") == 0) 
+		{
+			wsUri = wsUri.substring(2);
+		}
+	
+		if (wsUri.indexOf("ws://") == 0 || wsUri.indexOf("wss://") == 0) 
+		{
+			if (host_port.indexOf("ws://") == 0 || host_port.indexOf("wss://") == 0)
+				wsUri = wsUri.replace(/(ws|wss):\/\/@HOST_PORT@/im, host_port);
+			else
+				wsUri = wsUri.replace(/@HOST_PORT@/im, host_port);
+		} 
+		else 
+		{
+			if (host_port.indexOf("ws://") == 0 || host_port.indexOf("wss://") == 0)
+				wsUri = wsUri.replace(/@HOST_PORT@/im, host_port);
+			else
+				wsUri = "ws://" + wsUri.replace(/@HOST_PORT@/im, host_port);
+		}
 	}
 }
-else
+catch(ex)
 {
-	while (host_port.endsWith('/')) 
-	{
-		host_port = host_port.substring(0, host_port.length - 1);
-	}
 
-	if (wsUri.indexOf("//") == 0) 
-	{
-		wsUri = wsUri.substring(2);
-	}
-
-	if (wsUri.indexOf("ws://") == 0 || wsUri.indexOf("wss://") == 0) 
-	{
-		if (host_port.indexOf("ws://") == 0 || host_port.indexOf("wss://") == 0)
-			wsUri = wsUri.replace(/(ws|wss):\/\/@HOST_PORT@/im, host_port);
-		else
-			wsUri = wsUri.replace(/@HOST_PORT@/im, host_port);
-	} 
-	else 
-	{
-		if (host_port.indexOf("ws://") == 0 || host_port.indexOf("wss://") == 0)
-			wsUri = wsUri.replace(/@HOST_PORT@/im, host_port);
-		else
-			wsUri = "ws://" + wsUri.replace(/@HOST_PORT@/im, host_port);
-	}
 }
 
 // string : StringObject.format(ObjectArray a)
@@ -257,226 +264,6 @@ function domReady()
 	try { onDocumentLoad(); } catch(ex) { }
 }
 
-class ActWebsocketInterface
-{
-	constructor(uri, path = "MiniParse")
-	{
-		var querySet = this.getQuerySet();
-		this.uri = uri;
-		this.id = null;
-		this.activate = !1;
-		var This = this;
-		document.addEventListener('onBroadcastMessage', function(evt)
-		{
-			This.onBroadcastMessage(evt)
-		});
-		document.addEventListener('onRecvMessage', function(evt) {
-			This.onRecvMessage(evt)
-		});
-		window.addEventListener('message', function(e)
-		{
-			if (e.data.type === 'onBroadcastMessage')
-			{
-				This.onBroadcastMessage(e.data)
-			}
-			if (e.data.type === 'onRecvMessage')
-			{
-				This.onRecvMessage(e.data)
-			}
-		})
-	}
-	connect()
-	{
-		if (typeof this.websocket != "undefined" && this.websocket != null)
-			this.close();
-		this.activate = !0;
-		var This = this;
-		this.websocket = new WebSocket(this.uri);
-		this.websocket.onopen = function(evt)
-		{
-			This.onopen(evt);
-		};
-		this.websocket.onmessage = function(evt)
-		{
-			This.onmessage(evt);
-		};
-		this.websocket.onclose = function(evt)
-		{
-			This.onclose(evt);
-		};
-		this.websocket.onerror = function(evt)
-		{
-			This.onerror(evt);
-		}
-	}
-	close() {
-		this.activate = !1;
-		if (this.websocket != null && typeof this.websocket != "undefined")
-		{
-			this.websocket.close();
-		}
-	}
-	onopen(evt) {
-		if (this.id != null && typeof this.id != "undefined")
-		{
-			this.set_id(this.id);
-		}
-		else
-		{
-			if (typeof overlayWindowId != "undefined")
-			{
-				this.set_id(overlayWindowId);
-			}
-			else
-			{
-				var r = new RegExp('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}');
-				var id = r.exec(navigator.userAgent);
-				if (id != null && id.length == 1)
-				{
-					this.set_id(id[0]);
-				}
-			}
-		}
-	}
-	onclose(evt)
-	{
-		this.websocket = null;
-		if (this.activate)
-		{
-			var This = this;
-			setTimeout(function()
-			{
-				This.connect()
-			}, 5000);
-		}
-	}
-	onmessage(evt)
-	{
-		if (evt.data == ".")
-		{
-			this.websocket.send(".");
-		}
-		else
-		{
-			try
-			{
-				var obj = JSON.parse(evt.data);
-				var type = obj.type;
-				if (type == "broadcast")
-				{
-					var from = obj.from;
-					var type = obj.msgtype;
-					var msg = obj.msg;
-					document.dispatchEvent(new CustomEvent('onBroadcastMessage',
-					{
-						detail: obj
-					}));
-				}
-				if (type == "send")
-				{
-					var from = obj.from;
-					var type = obj.msgtype;
-					var msg = obj.msg;
-					document.dispatchEvent(new CustomEvent('onRecvMessage',
-					{
-						detail: obj
-					}));
-				}
-				if (type == "set_id") {}
-			} catch (e) {}
-		}
-	}
-	onerror(evt)
-	{
-		this.websocket.close();
-		console.log(evt);
-	}
-	getQuerySet()
-	{
-		var querySet = {};
-		var query = window.location.search.substring(1);
-		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++)
-		{
-			try
-			{
-				var pair = vars[i].split('=');
-				querieSet[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-			}
-			catch (e) {}
-		}
-		return querySet;
-	}
-	broadcast(type, msg)
-	{
-		if (typeof overlayWindowId != 'undefined' && this.id != overlayWindowId)
-		{
-			this.set_id(overlayWindowId);
-		}
-		var obj = {};
-		obj.type = "broadcast";
-		obj.msgtype = type;
-		obj.msg = msg;
-		this.websocket.send(JSON.stringify(obj));
-	}
-	send(to, type, msg)
-	{
-		if (typeof overlayWindowId != 'undefined' && this.id != overlayWindowId)
-		{
-			this.set_id(overlayWindowId);
-		}
-		var obj = {};
-		obj.type = "send";
-		obj.to = to;
-		obj.msgtype = type;
-		obj.msg = msg;
-		this.websocket.send(JSON.stringify(obj));
-	}
-	overlayAPI(type, msg)
-	{
-		var obj = {};
-		if (typeof overlayWindowId != 'undefined' && this.id != overlayWindowId)
-		{
-			this.set_id(overlayWindowId)
-		}
-		obj.type = "overlayAPI";
-		obj.to = overlayWindowId;
-		obj.msgtype = type;
-		obj.msg = msg;
-		this.websocket.send(JSON.stringify(obj));
-	}
-	set_id(id)
-	{
-		var obj = {};
-		obj.type = "set_id";
-		obj.id = id;
-		this.id = overlayWindowId;
-		this.websocket.send(JSON.stringify(obj));
-	}
-	onRecvMessage(e) {}
-	onBroadcastMessage(e) {}
-};
-
-// ACTWebSocket 적용
-class WebSocketImpl extends ActWebsocketInterface
-{
-	constructor(uri, path = "MiniParse") 
-	{
-		super(uri, path);
-	}
-	//send(to, type, msg)
-	//broadcast(type, msg)
-	onRecvMessage(e)
-	{
-		onRecvMessage(e);
-	}
-
-	onBroadcastMessage(e)
-	{
-		onBroadcastMessage(e);
-	}
-};
-
 function onRecvMessage(e)
 {
 	if (e.detail.msgtype == "Chat")
@@ -535,7 +322,6 @@ function onBroadcastMessage(e)
 				curzone = e.detail.msg.zoneID;
 				break;
 			default:
-				console.log(e.detail.msgtype + ":" + e.detail.msg);
 				break;
 		}
 	}
@@ -587,6 +373,9 @@ function Person(e, p)
 		"lastinit":this.name, 
 		"fullinit":this.name
 	};
+	this.effectiveHeal = this.healed - this.overHeal;
+	this["overHeal%"] = Math.floor(this.overHeal / this.healed * 10000) / 100;
+
 	this.original = {
 		Damage: this.damage,
 		Hits: this.hits,
@@ -606,7 +395,8 @@ function Person(e, p)
 		Last10DPS: this.Last10DPS,
 		Last30DPS: this.Last30DPS,
 		Last60DPS: this.Last60DPS,
-		Last180DPS: this.Last180DPS
+		Last180DPS: this.Last180DPS,
+		effectiveheal: this.effectiveHeal
 	};
 
 	/* FIX MAXHIT */
@@ -848,6 +638,9 @@ Person.prototype.recalculate = function()
 	this["CritDirectHit%"] = pFloat(this.mergedCritDirectHitCount / this.hits * 100);
 
 	this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
+	
+	this.effectiveHeal = pFloat(this.mergedHealed - this.mergedOverHeal);
+	this["overHeal%"] = pFloat(this.mergedOverHeal / this.mergedHealed * 100);
 };
 
 // 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
@@ -1210,6 +1003,53 @@ Combatant.prototype.resort = function(key, vector)
 
 	this.sort(vector);
 };
+
+function getsortKey(e)
+{
+	switch(activeSort(e))
+	{
+		case "damage":
+			return "mergedDamage";
+		case "hits":
+			return "mergedHits";
+		case "misses":
+			return "mergedMisses";
+		case "swings":
+			return "mergedSwings";
+		case "crithits":
+			return "mergedCrithits";
+		case "DirectHitCount":
+			return "mergedDirectHitCount";
+		case "CritDirectHitCount":
+			return "mergedCritDirectHitCount";
+		case "damagetaken":
+			return "mergedDamagetaken";
+		case "heals":
+			return "mergedHeals";
+		case "healed":
+			return "mergedHealed";
+		case "critheals":
+			return "mergedCritheals";
+		case "healstaken":
+			return "mergedHealstaken";
+		case "damageShield":
+			return "mergedDamageShield";
+		case "overHeal":
+			return "mergedOverHeal";
+		case "absorbHeal":
+			return "mergedAbsorbHeal";
+		case "Last10DPS":
+			return "mergedLast10DPS";
+		case "Last30DPS":
+			return "mergedLast30DPS";
+		case "Last60DPS":
+			return "mergedLast60DPS";
+		case "Last180DPS":
+			return "mergedLast180DPS";
+		default:
+			return activeSort(e);
+	}
+}
 
 function activeSort(key, merge)
 {
