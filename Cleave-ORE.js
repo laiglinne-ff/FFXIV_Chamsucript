@@ -2,35 +2,10 @@ var onACTWebSocket = false;
 if(window.navigator.userAgent.indexOf("OverlayWindow") > -1 &&
 	window.navigator.userAgent.indexOf("QtWebEngine") > -1)
 {
-	console.log("On ACTWebSocket Mode");
 	onACTWebSocket = true;
+	console.warn("Running on ACTWebSocket Overlay Process");
+	console.log("%cHello! <" + document.title + " is with Cleave-ORE.js>\nversion 2.0", "font-size:24px; color:#FFF; text-shadow:0px 0px 3px black, 0px 0px 3px black; background:url(https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/fell-cleave.png?raw=true);");
 }
-
-var cleaveore = function()
-{
-	this.Capture = function()
-	{
-		if(onACTWebSocket)
-		{
-			webs.overlayAPI('Capture');
-		}
-	};
-
-	this.EndEncounter = function()
-	{
-		if(onACTWebSocket)
-		{
-			webs.overlayAPI('RequestEnd');
-		}
-		else
-		{
-			if(window.OverlayPluginApi.endEncounter)
-			{
-				window.OverlayPluginApi.endEncounter();
-			}
-		}
-	}
-};
 
 var combatLog = [];
 var combatants = [];
@@ -39,7 +14,6 @@ var curzone = 0;
 
 var lastCombatRaw = null;
 var lastCombat = null;
-var webs = null;
 
 var maxhp = 100;
 var myID = 0;
@@ -665,11 +639,11 @@ Person.prototype.recalculate = function()
 	this["damage%"] = pFloat(this.mergedDamage / this.parent.Encounter.damage * 100);
 	this["healed%"] = pFloat(this.mergedHealed / this.parent.Encounter.healed * 100);
 
-	this["crithit%"] = pFloat(this.mergedCrithits / this.hits * 100);
-	this["critheal%"] = pFloat(this.mergedCritheals / this.heals * 100);
+	this["crithit%"] = pFloat(this.mergedCrithits / this.mergedHits * 100);
+	this["critheal%"] = pFloat(this.mergedCritheals / this.mergedHeals * 100);
 
-	this["DirectHit%"] = pFloat(this.mergedDirectHitCount / this.hits * 100);
-	this["CritDirectHit%"] = pFloat(this.mergedCritDirectHitCount / this.hits * 100);
+	this["DirectHit%"] = pFloat(this.mergedDirectHitCount / this.mergedHits * 100);
+	this["CritDirectHit%"] = pFloat(this.mergedCritDirectHitCount / this.mergedHeals * 100);
 
 	this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
 	
@@ -1499,3 +1473,26 @@ function saveSetting(key, val)
 
 var langpack = new Language("ko");
 var Lib = new FFXIVLib();
+
+function Capture()
+{
+	if(onACTWebSocket)
+	{
+		webs.overlayAPI('Capture');
+	}
+}
+
+function EndEncounter()
+{
+	if(onACTWebSocket)
+	{
+		webs.overlayAPI('RequestEnd');
+	}
+	else
+	{
+		if(window.OverlayPluginApi.endEncounter)
+		{
+			window.OverlayPluginApi.endEncounter();
+		}
+	}
+}

@@ -1,4 +1,4 @@
-
+var webs = null;
 class ActWebsocketInterface
 {
 	constructor(uri, path = "MiniParse")
