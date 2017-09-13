@@ -6,6 +6,32 @@ if(window.navigator.userAgent.indexOf("OverlayWindow") > -1 &&
 	onACTWebSocket = true;
 }
 
+var cleaveore = function()
+{
+	this.Capture = function()
+	{
+		if(onACTWebSocket)
+		{
+			webs.overlayAPI('Capture');
+		}
+	};
+
+	this.EndEncounter = function()
+	{
+		if(onACTWebSocket)
+		{
+			webs.overlayAPI('RequestEnd');
+		}
+		else
+		{
+			if(window.OverlayPluginApi.endEncounter)
+			{
+				window.OverlayPluginApi.endEncounter();
+			}
+		}
+	}
+};
+
 var combatLog = [];
 var combatants = [];
 var curhp = 100;
