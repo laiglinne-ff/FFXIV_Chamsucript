@@ -4,7 +4,8 @@
 
 2. unzip
 
-3. Add ACTWebSocket (because this overlay using DamageShield Data)
+3. Add ACTWebSocket (because this overlay using DamageShield Data)<br>
+(All Plugin Unload and ACTWebSocket First Load -> view this repo [ACTWebSocket](https://github.com/ZCube/ACTWebSocket))
 
 4. Open OverlayPlugin.dll Tab
 
