@@ -1,66 +1,32 @@
-var onACTWebSocket = false;
-if(window.navigator.userAgent.indexOf("OverlayWindow") > -1 &&
-	window.navigator.userAgent.indexOf("QtWebEngine") > -1)
-{
-	onACTWebSocket = true;
-	console.warn("Running on ACTWebSocket Overlay Process");
-	console.log("%cHello! <" + document.title + " is with Cleave-ORE.js>\nversion 2.0", "font-size:24px; color:#FFF; text-shadow:0px 0px 3px black, 0px 0px 3px black; background:url(https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/fell-cleave.png?raw=true);");
-}
-
-var combatLog = [];
-var combatants = [];
-var curhp = 100;
-var curzone = 0;
-
-var lastCombatRaw = null;
-var lastCombat = null;
-
-var maxhp = 100;
-var myID = 0;
-var underDot = 2;
-
-var myName = "";
-var sortKey = "encdps";
-
-var delayOK = !0;
-var diffcolor = !1;
-var shorter = false;
-
-var Debug = new dbg(false);
-
-var jobColors = {
-	"PLD": [200, 255, 255],
-	"WAR": [200, 40, 30],
-	"DRK": [130, 40, 50],
-	"MNK": [180, 140, 20],
-	"DRG": [50, 90, 240],
-	"NIN": [80, 70, 90],
-	"BRD": [180, 200, 80],
-	"MCH": [130, 255, 240],
-	"SMN": [40, 150, 0],
-	"BLM": [100, 70, 150],
-	"WHM": [200, 195, 170],
-	"SCH": [60, 60, 160],
-	"AST": [200, 130, 90],
-	"LMB": [255, 204, 0]
-};
-
-var chocoboskill = [ "초코 강타", "초코 방어", "초코 발차기", "초코 내려찍기", "초코 돌풍", "초코 돌격", "초코 쪼기", "초코 때리기", "초코 메디카", "초코 쇄도", "초코 케알", "초코 리제네", "チョコストライク", "チョコガード", "チョコキック", "チョコドロップ", "チョコブラスト", "チョコラッシュ", "チョコビーク", "チョコスラッシュ", "チョコメディカ", "チョコサージ", "チョコケアル", "チョコリジェネ", "Choco-frappe", "Choco-garde", "Choco-serres", "Choco-saut", "Choco-explosion", "Choco-ruée", "Choco-bec", "Choco-taillade", "Choco-médica", "Choco-ardeur", "Choco-soin", "Choco-récup", "Chocobo-Schlag", "Chocobo-Block", "Chocobo-Tritt", "Chocobo-Faller", "Chocobo-Knall", "Chocobo-Rausch", "Chocobo-Schnabel", "Chocobo-Hieb", "Chocobo-Reseda", "Chocobo-Quelle", "Chocobo-Vita", "Chocobo-Regena", "Choco Strike", "Choco Guard", "Choco Kick", "Choco Drop", "Choco Blast", "Choco Rush", "Choco Beak", "Choco Slash", "Choco Medica", "Choco Surge", "Choco Cure", "Choco Regen" ];
-
-var advclass = [ "GLD", "GLA", "MRD", "PGL", "LNC", "ROG", "ARC", "THM", "ACN", "CNJ" ];
-var advjob = [ "PLD", "PLD", "WAR", "MNK", "DRG", "NIN", "BRD", "BLM", "SMN", "WHM", "SCH", "MCH", "DRK", "AST", "SAM", "RDM" ];
-
-var tanker = [ "PLD", "WAR", "DRK" ];
-var healer = [ "WHM", "SCH", "AST" ];
-
-var specialist = {
+var onACTWebSocket = !1,
+combatLog = [],
+combatants = [],
+curhp = 100,
+curzone = 0,
+lastCombatRaw = null,
+lastCombat = null,
+maxhp = 100,
+myID = 0,
+underDot = 2,
+myName = "",
+sortKey = "encdps",
+delayOK = !0,
+diffcolor = !1,
+shorter = !1,
+Debug = new dbg(!1),
+chocoboskill = [ "초코 강타", "초코 방어", "초코 발차기", "초코 내려찍기", "초코 돌풍", "초코 돌격", "초코 쪼기", "초코 때리기", "초코 메디카", "초코 쇄도", "초코 케알", "초코 리제네", "チョコストライク", "チョコガード", "チョコキック", "チョコドロップ", "チョコブラスト", "チョコラッシュ", "チョコビーク", "チョコスラッシュ", "チョコメディカ", "チョコサージ", "チョコケアル", "チョコリジェネ", "Choco-frappe", "Choco-garde", "Choco-serres", "Choco-saut", "Choco-explosion", "Choco-ruée", "Choco-bec", "Choco-taillade", "Choco-médica", "Choco-ardeur", "Choco-soin", "Choco-récup", "Chocobo-Schlag", "Chocobo-Block", "Chocobo-Tritt", "Chocobo-Faller", "Chocobo-Knall", "Chocobo-Rausch", "Chocobo-Schnabel", "Chocobo-Hieb", "Chocobo-Reseda", "Chocobo-Quelle", "Chocobo-Vita", "Chocobo-Regena", "Choco Strike", "Choco Guard", "Choco Kick", "Choco Drop", "Choco Blast", "Choco Rush", "Choco Beak", "Choco Slash", "Choco Medica", "Choco Surge", "Choco Cure", "Choco Regen" ],
+advclass = [ "GLD", "GLA", "MRD", "PGL", "LNC", "ROG", "ARC", "THM", "ACN", "CNJ" ],
+advjob = [ "PLD", "PLD", "WAR", "MNK", "DRG", "NIN", "BRD", "BLM", "SMN", "WHM", "SCH", "MCH", "DRK", "AST", "SAM", "RDM" ],
+tanker = [ "PLD", "WAR", "DRK" ],
+healer = [ "WHM", "SCH", "AST" ],
+specialist = {
 	"SMN":[ "에기", "카벙클", "EGI", "CARBUNCLE", "エギ", "カーバンクル" ],
 	"SCH":[ "요정", "EOS", "SELENE", "フェアリー" ],
 	"MCH":[ "포탑", "AUTOTURRET", "オートタレット" ],
 	"LMB":[ "LIMIT BREAK", "リミット" ]
-};
-
-var QueryString = function() 
+},
+managedKeys = {"damage":"mergedDamage","hits":"mergedHits","misses":"mergedMisses","swings":"mergedSwings","crithits":"mergedCrithits","DirectHitCount":"mergedDirectHitCount","CritDirectHitCount":"mergedCritDirectHitCount","damagetaken":"mergedDamagetaken","heals":"mergedHeals","healed":"mergedHealed","critheals":"mergedCritheals","healstaken":"mergedHealstaken","damageShield":"mergedDamageShield","overHeal":"mergedOverHeal","absorbHeal":"mergedAbsorbHeal","Last10DPS":"mergedLast10DPS","Last30DPS":"mergedLast30DPS","Last60DPS":"mergedLast60DPS","Last180DPS":"mergedLast180DPS"},
+QueryString = function() 
 {
 	var query_string = {};
 	var query = window.location.search.substring(1);
@@ -84,12 +50,49 @@ var QueryString = function()
 	}
 
 	return query_string;
-}();
-
-var host_port = QueryString.HOST_PORT;
+}(),
+host_port = QueryString.HOST_PORT;
 
 try
 {
+	if(window.navigator.userAgent.indexOf("OverlayWindow") > -1 && window.navigator.userAgent.indexOf("QtWebEngine") > -1)
+	{
+		onACTWebSocket = true;
+		console.warn("Running on ACTWebSocket Overlay Process");
+		console.log("%cHello! <" + document.title + " is with Cleave-ORE.js>\nversion 2.0", "font-size:24px; color:#FFF; text-shadow:0px 0px 3px black, 0px 0px 3px black; background:url(https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/fell-cleave.png?raw=true);");
+	}
+	
+	if (document.addEventListener) 
+	{
+		document.addEventListener("DOMContentLoaded", function () 
+		{
+			document.removeEventListener("DOMContentLoaded", arguments.callee, !1);
+			domReady();
+		}, !1);
+		
+		window.onbeforeunload = function() 
+		{
+			webs.close();
+		};
+		
+		window.addEventListener("unload", function() 
+		{
+			webs.close();
+		}, !1);
+	}
+	else if (document.attachEvent) 
+	{
+		// Internet Explorer
+		document.attachEvent("onreadystatechange", function () 
+		{
+			if (document.readyState === "complete") 
+			{
+				document.detachEvent("onreadystatechange", arguments.callee);
+				domReady();
+			}
+		});
+	}
+
 	if(typeof(host_port) === "undefined")
 	{
 		/* FOR LOCAL TEST */
@@ -126,13 +129,8 @@ try
 		}
 	}
 }
-catch(ex)
-{
+catch(ex) { }
 
-}
-
-// string : StringObject.format(ObjectArray a)
-// 사용예 : "{abc}{def}".format({abc:"wow", def:" awesome!"}); => return "wow awesome!";
 String.prototype.format = function(a)
 {
 	var reg = /(\{([^}]+)\})/im;
@@ -189,41 +187,6 @@ Number.prototype.numFormat = new function()
 	}
 };
 
-// 이벤트 리스너를 자동으로 추가하도록 지정합니다.
-// 사용할 스크립트의 맨 위에 선언해야 정상적으로 작동을 보장합니다.
-if (document.addEventListener) 
-{
-	// Mozilla, Opera, Webkit 
-	document.addEventListener("DOMContentLoaded", function () 
-	{
-		document.removeEventListener("DOMContentLoaded", arguments.callee, !1);
-		domReady();
-	}, !1);
-
-	/* ACTWebSocket 적용 */
-	window.onbeforeunload = function() 
-	{
-		webs.close();
-	};
-	
-	window.addEventListener("unload", function() 
-	{
-		webs.close();
-	}, !1);
-}
-else if (document.attachEvent) 
-{
-	// Internet Explorer
-	document.attachEvent("onreadystatechange", function () 
-	{
-		if (document.readyState === "complete") 
-		{
-			document.detachEvent("onreadystatechange", arguments.callee);
-			domReady();
-		}
-	});
-}
-
 window.addEventListener('message', function (e) 
 {
 	if (e.data.type === 'onBroadcastMessage') 
@@ -235,6 +198,124 @@ window.addEventListener('message', function (e)
 		onRecvMessage(e.data);
 	}
 });
+
+function getLog(e)
+{
+	for(var i in CombatLog)
+	{
+		if(CombatLog[i].combatKey == e && lastCombat.encounter.title != "Encounter")
+		{
+			lastCombat = CombatLog[i];
+			document.dispatchEvent(new CustomEvent('onSuccessGetLog', {detail:{ combatant:CombatLog[i] }}));
+			return !1;
+		}
+	}
+	return !0;
+}
+
+function safeAdd (x, y)
+{
+	var a = (x & 0xFFFF) + (y & 0xFFFF);
+	var b = (x >> 16) + (y >> 16) + (a >> 16);
+	return (b << 16) | (a & 0xFFFF);
+}
+
+function hexColor(str)
+{
+	var str = str.replace("#", "");
+
+	if (str.length == 6 || str.length == 3)
+	{
+		if (str.length == 6)
+			return [parseInt(str.substr(0,2), 16), parseInt(str.substr(2,2), 16), parseInt(str.substr(4,2), 16)];
+		else
+			return [parseInt(str.substr(0,1), 16), parseInt(str.substr(1,1), 16), parseInt(str.substr(2,1), 16)];
+	}
+	else
+	{
+		return [0, 0, 0];
+	}
+}
+
+function oHexColor(str)
+{
+	var data = hexColor(str);
+	return {r:data[0], g:data[1], b:data[2]};
+}
+
+function oHexArgb(str)
+{
+	if (str.length < 8) return {a:0, r:0, g:0, b:0};
+	var data = oHexColor(str.replace("#", "").substr(2,6));
+	var rgb = str.replace("#", "");
+	return {a:parseFloat((parseInt(rgb.substr(0,2), 16)/255).toFixed(2)), r:data.r, g:data.g, b:data.b};
+}
+
+function saveLog(e)
+{
+	var exists = !0;
+	for(var i in CombatLog)
+	{
+		if(CombatLog[i].combatKey == e.combatKey)
+			exists = !1;
+	}
+
+	if(!exists)
+	{
+		CombatLog.push(e);
+		document.dispatchEvent(new CustomEvent('onSuccessSaveLog', {detail:{ combatant:e }}));
+	}
+}
+
+function pFloat(num)
+{
+	return parseFloat(num.nanFix().toFixed(underDot));
+}
+
+function loadSetting(key)
+{
+	var json = "";
+
+	try
+	{	
+		json = localStorage.getItem(key);
+		json = JSON.parse(json);
+	}
+	catch(ex)
+	{
+		return json;
+	}
+
+	return json;
+}
+
+function saveSetting(key, val)
+{
+	localStorage.setItem(key, JSON.stringify(val));
+}
+
+function Capture()
+{
+	if(onACTWebSocket)
+	{
+		webs.overlayAPI('Capture');
+	}
+}
+
+function EndEncounter()
+{
+	if(onACTWebSocket)
+	{
+		webs.overlayAPI('RequestEnd');
+	}
+	else
+	{
+		if(window.OverlayPluginApi.endEncounter)
+		{
+			window.OverlayPluginApi.endEncounter();
+		}
+	}
+}
 
 function dbg(v)
 {
@@ -310,15 +391,6 @@ function onBroadcastMessage(e)
 				document.dispatchEvent(new CustomEvent("onCharacterNameRecive",{detail:e.detail.msg}));
 				myName = e.detail.msg.charName;
 				break;
-			case "AddCombatant":
-			
-				break;
-			case "RemoveCombatant":
-			
-				break;
-			case "AbilityUse":
-			
-				break;
 			case "Chat":
 				document.dispatchEvent(new CustomEvent("onChatting",
 				{
@@ -330,13 +402,100 @@ function onBroadcastMessage(e)
 				curzone = e.detail.msg.zoneID;
 				break;
 			default:
+				try
+				{
+					document.dispatchEvent(new CustomEvent("onMessage"), e);
+				}
+				catch(ex) { }
 				break;
 		}
 	}
 }
 
-function Person(e, p)
+Person = function(e, p)
 {
+	this.returnOrigin = function()
+	{
+		for(var i in this.original)
+		{
+			if (i.indexOf("Last") > -1)
+				this["merged"+i] = this[i];
+			else if (i == "CritDirectHitCount" || i == "DirectHitCount")
+				this["merged"+i] = this[i];
+			else
+				this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
+		}
+    };
+    
+	this.merge = function(person)
+	{
+		this.returnOrigin();
+		if(person.petType != "Chocobo_Persons")
+		{
+			this.pets[person.name] = person;
+
+			for(var k in this.pets)
+			{
+				for(var i in this.original)
+				{
+					if (i.indexOf("Last") > -1)
+						this["merged"+i] += this.pets[k].original[i];
+					else
+						this["merged"+i] += this.pets[k].original[i];
+				}
+			}
+		}
+		this.recalculate();
+    };
+    
+	this.recalc = function()
+	{
+		this.recalculate();
+    };
+    
+	this.recalculate = function()
+	{
+		var dur = this.DURATION;
+		if (dur == 0) dur = 1;
+
+		this.dps = pFloat(this.mergedDamage / dur);
+		this.encdps = pFloat(this.mergedDamage / this.parent.DURATION);
+		this.hps = pFloat(this.mergedHealed / dur);
+		this.enchps = pFloat(this.mergedHealed / this.parent.DURATION);
+
+		this["DAMAGE-k"] = Math.floor(this.mergedDamage / 1000);
+		this["DAMAGE-m"] = Math.floor(this.mergedDamage / 1000000);
+
+		this.DPS = Math.floor(this.dps);
+		this["DPS-k"] = Math.floor(this.dps / 1000);
+		this.ENCDPS = Math.floor(this.encdps);
+		this.ENCHPS = Math.floor(this.enchps);
+		this["ENCDPS-k"] = Math.floor(this.encdps / 1000);
+		this["ENCHPS-k"] = Math.floor(this.enchps / 1000);
+
+		this["damage%"] = pFloat(this.mergedDamage / this.parent.Encounter.damage * 100);
+		this["healed%"] = pFloat(this.mergedHealed / this.parent.Encounter.healed * 100);
+
+		this["crithit%"] = pFloat(this.mergedCrithits / this.mergedHits * 100);
+		this["critheal%"] = pFloat(this.mergedCritheals / this.mergedHeals * 100);
+
+		this["DirectHit%"] = pFloat(this.mergedDirectHitCount / this.mergedHits * 100);
+		this["CritDirectHit%"] = pFloat(this.mergedCritDirectHitCount / this.mergedHeals * 100);
+
+		this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
+		
+		this.effectiveHeal = pFloat(this.mergedHealed - this.mergedOverHeal);
+		this["overHeal%"] = pFloat(this.mergedOverHeal / this.mergedHealed * 100);
+    };
+    
+	this.get = function(key) 
+	{
+		if (this.parent.summonerMerge && managedKeys[key] != undefined)
+			return this[managedKeys[key]];
+        else
+            return this[key];
+    };
+    
 	if(e == undefined) return;
 	/* REWORK TAKEN VALUES */
 	for(var i in e)
@@ -373,7 +532,6 @@ function Person(e, p)
 	this.visible = !0;
 	this.rank = 0;
 	this.maxdamage = 0;
-	this.color = {A:127, R:0, G:0, B:0}; // (Unknown color)
 	this.displayName = this.name;
 	this.displayNameWithInitial = {
 		"original":this.name, 
@@ -405,7 +563,13 @@ function Person(e, p)
 		Last60DPS: this.Last60DPS,
 		Last180DPS: this.Last180DPS,
 		effectiveheal: this.effectiveHeal
-	};
+    };
+    
+    this.maxhitstr = "";
+    this.maxhitval = 0;
+
+    this.maxhealstr = "";
+    this.maxhealval = 0;
 
 	/* FIX MAXHIT */
 	try
@@ -416,8 +580,6 @@ function Person(e, p)
 	catch (ex)
 	{
 		this.maxhit = "?-0";
-		this.maxhitstr = "";
-		this.maxhitval = 0;
 	}
 
 	/* FIX MAXHEAL */
@@ -429,8 +591,6 @@ function Person(e, p)
 	catch (ex)
 	{
 		this.maxheal = "?-0";
-		this.maxhealstr = "";
-		this.maxhealval = 0;
 	}
 
 	/* IF NAME HAVE SPACE, TO MAKE INITIAL NAME */
@@ -543,19 +703,6 @@ function Person(e, p)
 			this.petOwner = matches[1];
 		}
 	}
-
-	this.color = {
-		R:this.getColor().R,
-		G:this.getColor().G,
-		B:this.getColor().B
-	}
-
-	if(this.petType != "Unknown" && this.petType != "Chocobo_Persons")
-	{
-		this.color.R+= parseInt(this.color.R/3);
-		this.color.G+= parseInt(this.color.G/3);
-		this.color.B+= parseInt(this.color.B/3);
-	}
 	
 	if (this.isPet && this.Class != "" && this.parent.users[this.petOwner] == undefined) 
 	{
@@ -572,173 +719,125 @@ function Person(e, p)
 			this["merged" + i] = this[i.substr(0, 1).toLowerCase() + i.substr(1)];
 	}
 
-	this.pets = {};
+    this.pets = {};
 }
 
-/* REGEON OF PERSON PROTOTYPE FUNCTIONS */
-Person.prototype.returnOrigin = function()
+Combatant = function(e, sortkey, lang)
 {
-	for(var i in this.original)
+	this.rerank = function(vector)
 	{
-		if (i.indexOf("Last") > -1)
-			this["merged"+i] = this[i];
-		else if (i == "CritDirectHitCount" || i == "DirectHitCount")
-			this["merged"+i] = this[i];
-		else
-			this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
-	}
-};
-
-Person.prototype.merge = function(person)
-{
-	this.returnOrigin();
-	if(person.petType != "Chocobo_Persons")
+		this.sort(vector);
+    };
+    
+	this.indexOf = function(person)
 	{
-		this.pets[person.name] = person;
-
-		for(var k in this.pets)
+		var v = -1;
+		for(var i in this.Combatant)
 		{
-			for(var i in this.original)
+			v++;
+			if ( i == person)
+				return v;
+		}
+
+		return v;
+    };
+    
+	this.sort = function(vector) 
+	{
+		if (vector != undefined)
+			this.sortvector = vector;
+
+		if (this.summonerMerge && managedKeys[this.sortkey] != undefined)
+			return managedKeys[this.sortkey];
+
+		for (var i in this.Combatant) 
+		{
+			if (this.Combatant[i].isPet && this.summonerMerge) 
 			{
-				if (i.indexOf("Last") > -1)
-					this["merged"+i] += this.pets[k].original[i];
-				else
-					this["merged"+i] += this.pets[k].original[i];
+				this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
+				this.Combatant[i].visible = !1;
+			} 
+			else 
+			{
+				this.Combatant[i].visible = !0;
 			}
 		}
-	}
-	this.recalculate();
-};
 
-// old version
-Person.prototype.recalc = function()
-{
-	this.recalculate();
-};
+		var tmp = new Array();
+		var r = 0;
+		for (var i in this.Combatant) tmp.push({ key: this.Combatant[i][this.sortkey], val: this.Combatant[i] });
 
-Person.prototype.recalculate = function()
-{
-	var dur = this.DURATION;
-	if (dur == 0) dur = 1;
+		this.Combatant = {};
 
-	this.dps = pFloat(this.mergedDamage / dur);
-	this.encdps = pFloat(this.mergedDamage / this.parent.DURATION);
-	this.hps = pFloat(this.mergedHealed / dur);
-	this.enchps = pFloat(this.mergedHealed / this.parent.DURATION);
+		if (this.sortvector) 
+			tmp.sort(function(a, b) { return b.key - a.key });
+		else 
+			tmp.sort(function(a, b) { return a.key - b.key });
 
-	this["DAMAGE-k"] = Math.floor(this.mergedDamage / 1000);
-	this["DAMAGE-m"] = Math.floor(this.mergedDamage / 1000000);
+		this.maxValue = tmp[0].key;
+		this.maxdamage = tmp[0].key;
 
-	this.DPS = Math.floor(this.dps);
-	this["DPS-k"] = Math.floor(this.dps / 1000);
-	this.ENCDPS = Math.floor(this.encdps);
-	this.ENCHPS = Math.floor(this.enchps);
-	this["ENCDPS-k"] = Math.floor(this.encdps / 1000);
-	this["ENCHPS-k"] = Math.floor(this.enchps / 1000);
-
-	this["damage%"] = pFloat(this.mergedDamage / this.parent.Encounter.damage * 100);
-	this["healed%"] = pFloat(this.mergedHealed / this.parent.Encounter.healed * 100);
-
-	this["crithit%"] = pFloat(this.mergedCrithits / this.mergedHits * 100);
-	this["critheal%"] = pFloat(this.mergedCritheals / this.mergedHeals * 100);
-
-	this["DirectHit%"] = pFloat(this.mergedDirectHitCount / this.mergedHits * 100);
-	this["CritDirectHit%"] = pFloat(this.mergedCritDirectHitCount / this.mergedHeals * 100);
-
-	this.tohit = pFloat(this.mergedHits / this.mergedSwings * 100);
-	
-	this.effectiveHeal = pFloat(this.mergedHealed - this.mergedOverHeal);
-	this["overHeal%"] = pFloat(this.mergedOverHeal / this.mergedHealed * 100);
-};
-
-// 해당 유저의 직업에 따른 기본 지정 소울 크리스탈 색을 가져옵니다. 재정의하여 사용할 수도 있습니다.
-// object : PersonObject.getColor(int r, int g, int b)
-Person.prototype.getColor = function(r, g, b)
-{
-	if(jobColors[this.Class] != undefined)
-	{
-		if(r==undefined) var r = 0;
-		if(g==undefined) var g = 0;
-		if(b==undefined) var b = 0;
-		return {"R":(jobColors[this.Class][0]+r), "G":(jobColors[this.Class][1]+g), "B":(jobColors[this.Class][2]+b)};
-	}
-	else
-	{
-		return {"R":240, "G":220, "B":110};
-	}
-};
-
-Person.prototype.get = function(key) 
-{
-	if (this.parent.summonerMerge) 
-	{
-		switch (key) 
+		for (var i in tmp) 
 		{
-			case "damage":
-				key = "mergedDamage";
-				break;
-			case "hits":
-				key = "mergedHits";
-				break;
-			case "misses":
-				key = "mergedMisses";
-				break;
-			case "swings":
-				key = "mergedSwings";
-				break;
-			case "crithits":
-				key = "mergedCrithits";
-				break;
-			case "DirectHitCount":
-				key = "mergedDirectHitCount";
-				break;
-			case "CritDirectHitCount":
-				key = "mergedCritDirectHitCount";
-				break;
-			case "damagetaken":
-				key = "mergedDamagetaken";
-				break;
-			case "heals":
-				key = "mergedHeals";
-				break;
-			case "healed":
-				key = "mergedHealed";
-				break;
-			case "critheals":
-				key = "mergedCritheals";
-				break;
-			case "healstaken":
-				key = "mergedHealstaken";
-				break;
-			case "damageShield":
-				key = "mergedDamageShield";
-				break;
-			case "overHeal":
-				key = "mergedOverHeal";
-				break;
-			case "absorbHeal":
-				key = "mergedAbsorbHeal";
-				break;
-			case "Last10DPS":
-				key = "mergedLast10DPS";
-				break;
-			case "Last30DPS":
-				key = "mergedLast30DPS";
-				break;
-			case "Last60DPS":
-				key = "mergedLast60DPS";
-				break;
-			case "Last180DPS":
-				key = "mergedLast180DPS";
-				break;
+			this.Combatant[tmp[i].val.name] = tmp[i].val;
 		}
-	}
 
-	return this[key];
-}
+		for (var i in this.Combatant) 
+		{
+			if (!this.Combatant[i].visible) continue;
+			this.Combatant[i].rank = r++;
+			this.Combatant[i].maxdamage = this.maxdamage;
+		}
+		this.persons = this.Combatant;
+    };
+    
+	this.AttachPets = function()
+	{
+		this.summonerMerge = !0;
 
-function Combatant(e, sortkey, lang)
-{
+		for(var i in this.Combatant)
+		{
+			this.Combatant[i].returnOrigin();
+			this.Combatant[i].recalculate();
+			this.Combatant[i].parent = this;
+		}
+    };
+    
+	this.DetachPets = function()
+	{
+		this.summonerMerge = !1;
+
+		for(var i in this.Combatant)
+		{
+			this.Combatant[i].returnOrigin();
+			this.Combatant[i].recalculate();
+			this.Combatant[i].parent = this;
+		}
+    };
+    
+	this.sortkeyChange = function(key)
+	{
+		this.resort(key, !0);
+    };
+    
+	this.sortkeyChangeDesc = function(key)
+	{
+		this.resort(key, !1);
+    };
+    
+	this.resort = function(key, vector)
+	{
+		if (key == undefined) 
+			this.sortkey = activeSort(this.sortkey);
+		else
+			this.sortkey = activeSort(key);
+
+		if (vector == undefined)
+			vector = this.sortvector;
+
+		this.sort(vector);
+    };
+    
 	if (sortkey == undefined) var sortkey = "encdps";
 	if (e == undefined) return;
 	if (!langpack.languageDefine)
@@ -830,233 +929,12 @@ function Combatant(e, sortkey, lang)
 
 	this.resort();
 }
-
-// Rank를 다시 부여하고 Combatant의 sortkey에 따라 다시 정렬합니다.
-// 이 과정에서 maxValue (최대값)을 가져옵니다.
-// 소환수 값 합산/해제 시 다시 호출할 때 사용합니다.
-Combatant.prototype.rerank = function(vector)
-{
-	this.sort(vector);
-};
-
-Combatant.prototype.indexOf = function(person)
-{
-	var v = -1;
-	for(var i in this.Combatant)
-	{
-		v++;
-		if ( i == person)
-			return v;
-	}
-
-	return v;
-};
-
-Combatant.prototype.sort = function(vector) 
-{
-	if (vector != undefined)
-		this.sortvector = vector;
-
-	if (this.summonerMerge) 
-	{
-		switch (this.sortkey) 
-		{
-			case "damage":
-				this.sortkey = "mergedDamage";
-				break;
-			case "hits":
-				this.sortkey = "mergedHits";
-				break;
-			case "misses":
-				this.sortkey = "mergedMisses";
-				break;
-			case "swings":
-				this.sortkey = "mergedSwings";
-				break;
-			case "crithits":
-				this.sortkey = "mergedCrithits";
-				break;
-			case "DirectHitCount":
-				this.sortkey = "mergedDirectHitCount";
-				break;
-			case "CritDirectHitCount":
-				this.sortkey = "mergedCritDirectHitCount";
-				break;
-			case "damagetaken":
-				this.sortkey = "mergedDamagetaken";
-				break;
-			case "heals":
-				this.sortkey = "mergedHeals";
-				break;
-			case "healed":
-				this.sortkey = "mergedHealed";
-				break;
-			case "critheals":
-				this.sortkey = "mergedCritheals";
-				break;
-			case "healstaken":
-				this.sortkey = "mergedHealstaken";
-				break;
-			case "damageShield":
-				this.sortkey = "mergedDamageShield";
-				break;
-			case "overHeal":
-				this.sortkey = "mergedOverHeal";
-				break;
-			case "absorbHeal":
-				this.sortkey = "mergedAbsorbHeal";
-				break;
-			case "Last10DPS":
-				this.sortkey = "mergedLast10DPS";
-				break;
-			case "Last30DPS":
-				this.sortkey = "mergedLast30DPS";
-				break;
-			case "Last60DPS":
-				this.sortkey = "mergedLast60DPS";
-				break;
-			case "Last180DPS":
-				this.sortkey = "mergedLast180DPS";
-				break;
-		}
-	}
-
-	for (var i in this.Combatant) 
-	{
-		if (this.Combatant[i].isPet && this.summonerMerge) 
-		{
-			this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
-			this.Combatant[i].visible = !1;
-		} 
-		else 
-		{
-			this.Combatant[i].visible = !0;
-		}
-	}
-
-	var tmp = new Array();
-	var r = 0;
-	for (var i in this.Combatant) tmp.push({ key: this.Combatant[i][this.sortkey], val: this.Combatant[i] });
-
-	this.Combatant = {};
-
-	if (this.sortvector) 
-		tmp.sort(function(a, b) { return b.key - a.key });
-	else 
-		tmp.sort(function(a, b) { return a.key - b.key });
-
-	this.maxValue = tmp[0].key;
-	this.maxdamage = tmp[0].key;
-
-	for (var i in tmp) 
-	{
-		this.Combatant[tmp[i].val.name] = tmp[i].val;
-	}
-
-	for (var i in this.Combatant) 
-	{
-		if (!this.Combatant[i].visible) continue;
-		this.Combatant[i].rank = r++;
-		this.Combatant[i].maxdamage = this.maxdamage;
-	}
-	this.persons = this.Combatant;
-};
-
-Combatant.prototype.AttachPets = function()
-{
-	this.summonerMerge = !0;
-
-	for(var i in this.Combatant)
-	{
-		this.Combatant[i].returnOrigin();
-		this.Combatant[i].recalculate();
-		this.Combatant[i].parent = this;
-	}
-}
-
-Combatant.prototype.DetachPets = function()
-{
-	this.summonerMerge = !1;
-
-	for(var i in this.Combatant)
-	{
-		this.Combatant[i].returnOrigin();
-		this.Combatant[i].recalculate();
-		this.Combatant[i].parent = this;
-	}
-}
-
-// old version function
-Combatant.prototype.sortkeyChange = function(key)
-{
-	this.resort(key, !0);
-};
-
-// old version function
-Combatant.prototype.sortkeyChangeDesc = function(key)
-{
-	this.resort(key, !1);
-};
-
-// using this
-Combatant.prototype.resort = function(key, vector)
-{
-	if (key == undefined) 
-		this.sortkey = activeSort(this.sortkey);
-	else
-		this.sortkey = activeSort(key);
-
-	if (vector == undefined)
-		vector = this.sortvector;
-
-	this.sort(vector);
-};
-
 function getsortKey(e)
 {
-	switch(activeSort(e))
-	{
-		case "damage":
-			return "mergedDamage";
-		case "hits":
-			return "mergedHits";
-		case "misses":
-			return "mergedMisses";
-		case "swings":
-			return "mergedSwings";
-		case "crithits":
-			return "mergedCrithits";
-		case "DirectHitCount":
-			return "mergedDirectHitCount";
-		case "CritDirectHitCount":
-			return "mergedCritDirectHitCount";
-		case "damagetaken":
-			return "mergedDamagetaken";
-		case "heals":
-			return "mergedHeals";
-		case "healed":
-			return "mergedHealed";
-		case "critheals":
-			return "mergedCritheals";
-		case "healstaken":
-			return "mergedHealstaken";
-		case "damageShield":
-			return "mergedDamageShield";
-		case "overHeal":
-			return "mergedOverHeal";
-		case "absorbHeal":
-			return "mergedAbsorbHeal";
-		case "Last10DPS":
-			return "mergedLast10DPS";
-		case "Last30DPS":
-			return "mergedLast30DPS";
-		case "Last60DPS":
-			return "mergedLast60DPS";
-		case "Last180DPS":
-			return "mergedLast180DPS";
-		default:
-			return activeSort(e);
-	}
+	if(managedKeys[activeSort(e)] != undefined)
+		return managedKeys[activeSort(e)];
+	else
+		return activeSort(e);
 }
 
 function activeSort(key, merge)
@@ -1096,8 +974,92 @@ function activeSort(key, merge)
 }
 
 // language 객체 입니다.
-function Language(l)
+Language = function(l)
 {
+	this.get = function(v)
+	{
+		var returnvalue = this.getPriv(v);
+
+		if(returnvalue != undefined)
+			return returnvalue;
+		else
+			return v;
+    };
+    
+	this.getPriv = function(v)
+	{
+		// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
+		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
+		try
+		{
+			if(this.dictionary.dots[v] != undefined && this.lang == "ko")
+				return this.dictionary.dots[v];
+			else if(this.userdic != null)
+			{
+				// 유저 사전 먼저 찾습니다.
+				if(this.userdic.skills[v] != undefined && shorter) // optional
+					return this.userdic.skills[v];
+			}
+			// 그 후에 기본값
+			else if(this.dictionary.skills[v] != undefined && shorter) // optional
+				return this.dictionary.skills[v];
+			else if(this.dictionary.display[v] != undefined)
+			{
+				if(this.dictionary.display[v][this.lang] != undefined) // JOBS
+					return this.dictionary.display[v][this.lang];
+			}
+			else
+				return v;
+		}
+		catch(ex)
+		{
+			console.log(ex);
+			return v;
+		}
+    };
+    
+	this.setLangDefine = function(ln)
+	{
+		if(ln != undefined)
+		{
+			this.languageDefine = true;
+			this.lang = b;
+		}
+    };
+    
+	this.getUserDic = function()
+	{
+		try
+		{
+			this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
+			if(this.userdic == null || this.userdic == undefined)
+			{
+				this.userdic = this.dictionary;
+				this.setUserDic();
+			}
+		}
+		catch(ex)
+		{
+
+		}
+    };
+    
+	this.setUserDic = function()
+	{
+		localStorage.setItem("claveore-dic", JSON.stringify(this.userdic));
+    };
+    
+	this.deleteUserSkillItem = function(key)
+	{
+		if(this.userdic.skills[key] != undefined)
+			delete this.userdic.skills[key];
+    };
+    
+	this.setUserSkillItem = function(key, val)
+	{
+		this.userdic.skills[key] = val;
+    };
+    
 	this.languageDefine = false;
 	this.lang = (l == undefined ? "ko" : l);
 	this.userdic = null;
@@ -1225,91 +1187,8 @@ function Language(l)
 	this.getUserDic();
 }
 
-// 해당하는 언어의 값을 가져옵니다.
-// string : LanguageObject.get(string v)
-Language.prototype.get = function(v)
-{
-	var returnvalue = this.getPriv(v);
-
-	if(returnvalue != undefined)
-		return returnvalue;
-	else
-		return v;
-};
-
-Language.prototype.getPriv = function(v)
-{
-	// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
-	this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
-	try
-	{
-		if(this.dictionary.dots[v] != undefined && this.lang == "ko")
-			return this.dictionary.dots[v];
-		else if(this.userdic != null)
-		{
-			// 유저 사전 먼저 찾습니다.
-			if(this.userdic.skills[v] != undefined && shorter) // optional
-				return this.userdic.skills[v];
-		}
-		// 그 후에 기본값
-		else if(this.dictionary.skills[v] != undefined && shorter) // optional
-			return this.dictionary.skills[v];
-		else if(this.dictionary.display[v] != undefined)
-		{
-			if(this.dictionary.display[v][this.lang] != undefined) // JOBS
-				return this.dictionary.display[v][this.lang];
-		}
-		else
-			return v;
-	}
-	catch(ex)
-	{
-		console.log(ex);
-		return v;
-	}
-}
-
-Language.prototype.setLangDefine = function(ln)
-{
-	if(ln != undefined)
-	{
-		this.languageDefine = true;
-		this.lang = b;
-	}
-};
-
-Language.prototype.getUserDic = function()
-{
-	try
-	{
-		this.userdic = JSON.parse(localStorage.getItem("claveore-dic"));
-		if(this.userdic == null || this.userdic == undefined)
-		{
-			this.userdic = this.dictionary;
-			this.setUserDic();
-		}
-	}
-	catch(ex)
-	{
-
-	}
-};
-
-Language.prototype.setUserDic = function()
-{
-	localStorage.setItem("claveore-dic", JSON.stringify(this.userdic));
-};
-
-Language.prototype.deleteUserSkillItem = function(key)
-{
-	if(this.userdic.skills[key] != undefined)
-		delete this.userdic.skills[key];
-};
-
-Language.prototype.setUserSkillItem = function(key, val)
-{
-	this.userdic.skills[key] = val;
-};
+var langpack = new Language("ko"),
+Lib = new FFXIVLib();
 
 function FFXIVLib()
 {
@@ -1360,139 +1239,15 @@ function FFXIVLib()
 		"SAM": { "code": 34 },
 		"RDM": { "code": 35 },
 	};
-	
-	this.getJobUrl 
 }
 
-FFXIVLib.prototype.getJobUrl = function(filename, dir) 
-{
-	if (dir == undefined)
-		dir = "Glow";
-	if (filename == undefined)
-		dir = "PLD";
-	return "https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/images/job/" + dir + "/" + filename + ".png?raw=true";
+FFXIVLib.prototype = {
+	getJobUrl:function(filename, dir)
+	{
+		if (dir == undefined)
+			dir = "Glow";
+		if (filename == undefined)
+			dir = "PLD";
+		return "https://github.com/laiglinne-ff/FFXIV_Chamsucript/blob/master/images/job/" + dir + "/" + filename + ".png?raw=true";
+	}
 };
-
-// bool : getLog(string e)
-// e : combatKey
-function getLog(e)
-{
-	for(var i in CombatLog)
-	{
-		if(CombatLog[i].combatKey == e && lastCombat.encounter.title != "Encounter")
-		{
-			lastCombat = CombatLog[i];
-			document.dispatchEvent(new CustomEvent('onSuccessGetLog', {detail:{ combatant:CombatLog[i] }}));
-			return !1;
-		}
-	}
-	return !0;
-}
-
-function safeAdd (x, y)
-{
-	var a = (x & 0xFFFF) + (y & 0xFFFF);
-	var b = (x >> 16) + (y >> 16) + (a >> 16);
-	return (b << 16) | (a & 0xFFFF);
-}
-
-function hexColor(str)
-{
-	var str = str.replace("#", "");
-
-	if (str.length == 6 || str.length == 3)
-	{
-		if (str.length == 6)
-			return [parseInt(str.substr(0,2), 16), parseInt(str.substr(2,2), 16), parseInt(str.substr(4,2), 16)];
-		else
-			return [parseInt(str.substr(0,1), 16), parseInt(str.substr(1,1), 16), parseInt(str.substr(2,1), 16)];
-	}
-	else
-	{
-		return [0, 0, 0];
-	}
-}
-
-function oHexColor(str)
-{
-	var data = hexColor(str);
-	return {r:data[0], g:data[1], b:data[2]};
-}
-
-function oHexArgb(str)
-{
-	if (str.length < 8) return {a:0, r:0, g:0, b:0};
-	var data = oHexColor(str.replace("#", "").substr(2,6));
-	var rgb = str.replace("#", "");
-	return {a:parseFloat((parseInt(rgb.substr(0,2), 16)/255).toFixed(2)), r:data.r, g:data.g, b:data.b};
-}
-
-// void : saveLog(Combatant e)
-function saveLog(e)
-{
-	var exists = !0;
-	for(var i in CombatLog)
-	{
-		if(CombatLog[i].combatKey == e.combatKey)
-			exists = !1;
-	}
-
-	if(!exists)
-	{
-		CombatLog.push(e);
-		document.dispatchEvent(new CustomEvent('onSuccessSaveLog', {detail:{ combatant:e }}));
-	}
-}
-
-function pFloat(num)
-{
-	return parseFloat(num.nanFix().toFixed(underDot));
-}
-
-function loadSetting(key)
-{
-	var json = "";
-
-	try
-	{	
-		json = localStorage.getItem(key);
-		json = JSON.parse(json);
-	}
-	catch(ex)
-	{
-		return json;
-	}
-
-	return json;
-}
-
-function saveSetting(key, val)
-{
-	localStorage.setItem(key, JSON.stringify(val));
-}
-
-var langpack = new Language("ko");
-var Lib = new FFXIVLib();
-
-function Capture()
-{
-	if(onACTWebSocket)
-	{
-		webs.overlayAPI('Capture');
-	}
-}
-
-function EndEncounter()
-{
-	if(onACTWebSocket)
-	{
-		webs.overlayAPI('RequestEnd');
-	}
-	else
-	{
-		if(window.OverlayPluginApi.endEncounter)
-		{
-			window.OverlayPluginApi.endEncounter();
-		}
-	}
-}
