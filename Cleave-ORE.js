@@ -412,47 +412,8 @@ function onBroadcastMessage(e)
 	}
 }
 
-Person = function(e, p)
+var Person = function(e, p)
 {
-	this.returnOrigin = function()
-	{
-		for(var i in this.original)
-		{
-			if (i.indexOf("Last") > -1)
-				this["merged"+i] = this[i];
-			else if (i == "CritDirectHitCount" || i == "DirectHitCount")
-				this["merged"+i] = this[i];
-			else
-				this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
-		}
-    };
-    
-	this.merge = function(person)
-	{
-		this.returnOrigin();
-		if(person.petType != "Chocobo_Persons")
-		{
-			this.pets[person.name] = person;
-
-			for(var k in this.pets)
-			{
-				for(var i in this.original)
-				{
-					if (i.indexOf("Last") > -1)
-						this["merged"+i] += this.pets[k].original[i];
-					else
-						this["merged"+i] += this.pets[k].original[i];
-				}
-			}
-		}
-		this.recalculate();
-    };
-    
-	this.recalc = function()
-	{
-		this.recalculate();
-    };
-    
 	this.recalculate = function()
 	{
 		var dur = this.DURATION;
@@ -486,16 +447,55 @@ Person = function(e, p)
 		
 		this.effectiveHeal = pFloat(this.mergedHealed - this.mergedOverHeal);
 		this["overHeal%"] = pFloat(this.mergedOverHeal / this.mergedHealed * 100);
-    };
-    
+	};
+	
+	this.returnOrigin = function()
+	{
+		for(var i in this.original)
+		{
+			if (i.indexOf("Last") > -1)
+				this["merged"+i] = this[i];
+			else if (i == "CritDirectHitCount" || i == "DirectHitCount")
+				this["merged"+i] = this[i];
+			else
+				this["merged"+i] = this[i.substr(0,1).toLowerCase()+i.substr(1)];
+		}
+	};
+	
+	this.merge = function(person)
+	{
+		this.returnOrigin();
+		if(person.petType != "Chocobo_Persons")
+		{
+			this.pets[person.name] = person;
+
+			for(var k in this.pets)
+			{
+				for(var i in this.original)
+				{
+					if (i.indexOf("Last") > -1)
+						this["merged"+i] += this.pets[k].original[i];
+					else
+						this["merged"+i] += this.pets[k].original[i];
+				}
+			}
+		}
+		this.recalculate();
+	};
+	
+	this.recalc = function()
+	{
+		this.recalculate();
+	};
+	
 	this.get = function(key) 
 	{
 		if (this.parent.summonerMerge && managedKeys[key] != undefined)
 			return this[managedKeys[key]];
-        else
-            return this[key];
-    };
-    
+		else
+			return this[key];
+	};
+	
 	if(e == undefined) return;
 	/* REWORK TAKEN VALUES */
 	for(var i in e)
@@ -523,6 +523,7 @@ Person = function(e, p)
 	}
 
 	/* VARIABLES */
+	this.pets = {};
 	this.parent = p;
 	this.Class = "Unknown";
 	this.PetType = "Unknown";
@@ -563,13 +564,13 @@ Person = function(e, p)
 		Last60DPS: this.Last60DPS,
 		Last180DPS: this.Last180DPS,
 		effectiveheal: this.effectiveHeal
-    };
-    
-    this.maxhitstr = "";
-    this.maxhitval = 0;
+	};
+	
+	this.maxhitstr = "";
+	this.maxhitval = 0;
 
-    this.maxhealstr = "";
-    this.maxhealval = 0;
+	this.maxhealstr = "";
+	this.maxhealval = 0;
 
 	/* FIX MAXHIT */
 	try
@@ -718,17 +719,10 @@ Person = function(e, p)
 		else 
 			this["merged" + i] = this[i.substr(0, 1).toLowerCase() + i.substr(1)];
 	}
-
-    this.pets = {};
 }
 
-Combatant = function(e, sortkey, lang)
-{
-	this.rerank = function(vector)
-	{
-		this.sort(vector);
-    };
-    
+var Combatant = function(e, sortkey, lang)
+{    
 	this.indexOf = function(person)
 	{
 		var v = -1;
@@ -740,20 +734,21 @@ Combatant = function(e, sortkey, lang)
 		}
 
 		return v;
-    };
-    
+	};
+	
 	this.sort = function(vector) 
 	{
 		if (vector != undefined)
 			this.sortvector = vector;
 
 		if (this.summonerMerge && managedKeys[this.sortkey] != undefined)
-			return managedKeys[this.sortkey];
+			this.sortkey = managedKeys[this.sortkey];
 
 		for (var i in this.Combatant) 
 		{
 			if (this.Combatant[i].isPet && this.summonerMerge) 
 			{
+				this.Combatant[this.Combatant[i].petOwner].pets[i] = this.Combatant[i];
 				this.Combatant[this.Combatant[i].petOwner].merge(this.Combatant[i]);
 				this.Combatant[i].visible = !1;
 			} 
@@ -789,8 +784,13 @@ Combatant = function(e, sortkey, lang)
 			this.Combatant[i].maxdamage = this.maxdamage;
 		}
 		this.persons = this.Combatant;
-    };
-    
+	};
+
+	this.rerank = function(vector)
+	{
+		this.sort(vector);
+	};
+	
 	this.AttachPets = function()
 	{
 		this.summonerMerge = !0;
@@ -801,8 +801,10 @@ Combatant = function(e, sortkey, lang)
 			this.Combatant[i].recalculate();
 			this.Combatant[i].parent = this;
 		}
-    };
-    
+
+		this.rerank();
+	};
+	
 	this.DetachPets = function()
 	{
 		this.summonerMerge = !1;
@@ -813,18 +815,10 @@ Combatant = function(e, sortkey, lang)
 			this.Combatant[i].recalculate();
 			this.Combatant[i].parent = this;
 		}
-    };
-    
-	this.sortkeyChange = function(key)
-	{
-		this.resort(key, !0);
-    };
-    
-	this.sortkeyChangeDesc = function(key)
-	{
-		this.resort(key, !1);
-    };
-    
+		
+		this.rerank();
+	};
+	
 	this.resort = function(key, vector)
 	{
 		if (key == undefined) 
@@ -836,8 +830,18 @@ Combatant = function(e, sortkey, lang)
 			vector = this.sortvector;
 
 		this.sort(vector);
-    };
-    
+	};
+	
+	this.sortkeyChange = function(key)
+	{
+		this.resort(key, !0);
+	};
+	
+	this.sortkeyChangeDesc = function(key)
+	{
+		this.resort(key, !1);
+	};
+	
 	if (sortkey == undefined) var sortkey = "encdps";
 	if (e == undefined) return;
 	if (!langpack.languageDefine)
@@ -929,6 +933,7 @@ Combatant = function(e, sortkey, lang)
 
 	this.resort();
 }
+
 function getsortKey(e)
 {
 	if(managedKeys[activeSort(e)] != undefined)
@@ -974,7 +979,7 @@ function activeSort(key, merge)
 }
 
 // language 객체 입니다.
-Language = function(l)
+var Language = function(l)
 {
 	this.get = function(v)
 	{
@@ -984,8 +989,8 @@ Language = function(l)
 			return returnvalue;
 		else
 			return v;
-    };
-    
+	};
+	
 	this.getPriv = function(v)
 	{
 		// 값은 매번 불러오므로 Save 프로세스를 잘 진행해주세요.
@@ -1016,8 +1021,8 @@ Language = function(l)
 			console.log(ex);
 			return v;
 		}
-    };
-    
+	};
+	
 	this.setLangDefine = function(ln)
 	{
 		if(ln != undefined)
@@ -1025,8 +1030,8 @@ Language = function(l)
 			this.languageDefine = true;
 			this.lang = b;
 		}
-    };
-    
+	};
+	
 	this.getUserDic = function()
 	{
 		try
@@ -1042,24 +1047,24 @@ Language = function(l)
 		{
 
 		}
-    };
-    
+	};
+	
 	this.setUserDic = function()
 	{
 		localStorage.setItem("claveore-dic", JSON.stringify(this.userdic));
-    };
-    
+	};
+	
 	this.deleteUserSkillItem = function(key)
 	{
 		if(this.userdic.skills[key] != undefined)
 			delete this.userdic.skills[key];
-    };
-    
+	};
+	
 	this.setUserSkillItem = function(key, val)
 	{
 		this.userdic.skills[key] = val;
-    };
-    
+	};
+	
 	this.languageDefine = false;
 	this.lang = (l == undefined ? "ko" : l);
 	this.userdic = null;
